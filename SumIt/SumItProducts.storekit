@@ -1,0 +1,74 @@
+{
+  "identifier" : "2A3B4C5D",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_applicationInternalID" : "1234567890",
+    "_developerTeamID" : "J98SU5UHZZ",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "A1B2C3D4",
+      "localizations" : [],
+      "name" : "SumIt Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "2.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "BASIC001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "GPT-4o-mini, 100 парсингов/мес, 500 транзакций",
+              "displayName" : "SumIt Basic",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.mykyta.SumIt.basic.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Basic Monthly",
+          "subscriptionGroupID" : "A1B2C3D4",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "5.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "PRO001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "GPT-4o, безлимит парсингов и транзакций, аналитика",
+              "displayName" : "SumIt Pro",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.mykyta.SumIt.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro Monthly",
+          "subscriptionGroupID" : "A1B2C3D4",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

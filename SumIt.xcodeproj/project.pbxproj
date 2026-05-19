@@ -6,17 +6,58 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXFileReference section */
-		F32B110E2F7457DB0087E901 /* SumIt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SumIt.app; sourceTree = BUILT_PRODUCTS_DIR; };
-/* End PBXFileReference section */
+/* Begin PBXBuildFile section */
+		F31E90322F7C016F0034D0AF /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31E90312F7C016F0034D0AF /* AppStore.swift */; };
+		F31E90342F7C01980034D0AF /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31E90332F7C01980034D0AF /* LockScreenView.swift */; };
+		F31E90362F7C01BF0034D0AF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31E90352F7C01BF0034D0AF /* SettingsView.swift */; };
+		F31E90382F7C02000034D0AF /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31E90372F7C02000034D0AF /* AuthService.swift */; };
+		F31E903A2F7C03000034D0AF /* StoreKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31E90392F7C03000034D0AF /* StoreKitManager.swift */; };
+		F31E903C2F7C03100034D0AF /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31E903B2F7C03100034D0AF /* PaywallView.swift */; };
+		F31E903E2F7C04000034D0AF /* Wallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31E903D2F7C04000034D0AF /* Wallet.swift */; };
+		F31E90402F7C04100034D0AF /* WalletViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31E903F2F7C04100034D0AF /* WalletViews.swift */; };
+		F31E90422F7C05000034D0AF /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F31E90412F7C05000034D0AF /* LocalizationManager.swift */; };
+		F321F0612F7BE03A0072D978 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F0602F7BE03A0072D978 /* RootView.swift */; };
+		F321F0652F7BE0900072D978 /* ReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F0642F7BE0900072D978 /* ReportsView.swift */; };
+		F321F0692F7BE0AC0072D978 /* ChatComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F0662F7BE0AC0072D978 /* ChatComposer.swift */; };
+		F321F06A2F7BE0AC0072D978 /* ConfirmationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F0682F7BE0AC0072D978 /* ConfirmationCard.swift */; };
+		F321F06B2F7BE0AC0072D978 /* ChatRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F0672F7BE0AC0072D978 /* ChatRootView.swift */; };
+		F321F0702F7BE0F60072D978 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F06F2F7BE0F60072D978 /* ChatViewModel.swift */; };
+		F321F0762F7BE12B0072D978 /* VoiceInputManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F0752F7BE12B0072D978 /* VoiceInputManager.swift */; };
+		F321F0782F7BE12B0072D978 /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F0732F7BE12B0072D978 /* CurrencyService.swift */; };
+		F321F0792F7BE12B0072D978 /* BackendService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F0722F7BE12B0072D978 /* BackendService.swift */; };
+		F321F07A2F7BE12B0072D978 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F0742F7BE12B0072D978 /* SupabaseService.swift */; };
+		F321F07D2F7BE1430072D978 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F07B2F7BE1430072D978 /* Models.swift */; };
+		F321F07E2F7BE1430072D978 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F321F07C2F7BE1430072D978 /* Transaction.swift */; };
+		F32B11122F7457DC0087E901 /* SumItApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32B11112F7457DC0087E901 /* SumItApp.swift */; };
+		F32B11182F7457DE0087E901 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F32B11172F7457DE0087E901 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		F32B11102F7457DB0087E901 /* SumIt */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SumIt;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
+/* Begin PBXFileReference section */
+		F31E90312F7C016F0034D0AF /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		F31E90332F7C01980034D0AF /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
+		F31E90352F7C01BF0034D0AF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		F31E90372F7C02000034D0AF /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		F31E90392F7C03000034D0AF /* StoreKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitManager.swift; sourceTree = "<group>"; };
+		F31E903B2F7C03100034D0AF /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		F31E903D2F7C04000034D0AF /* Wallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wallet.swift; sourceTree = "<group>"; };
+		F31E903F2F7C04100034D0AF /* WalletViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletViews.swift; sourceTree = "<group>"; };
+		F31E90412F7C05000034D0AF /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
+		F321F0602F7BE03A0072D978 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		F321F0642F7BE0900072D978 /* ReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsView.swift; sourceTree = "<group>"; };
+		F321F0662F7BE0AC0072D978 /* ChatComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatComposer.swift; sourceTree = "<group>"; };
+		F321F0672F7BE0AC0072D978 /* ChatRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRootView.swift; sourceTree = "<group>"; };
+		F321F0682F7BE0AC0072D978 /* ConfirmationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmationCard.swift; sourceTree = "<group>"; };
+		F321F06F2F7BE0F60072D978 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		F321F0722F7BE12B0072D978 /* BackendService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendService.swift; sourceTree = "<group>"; };
+		F321F0732F7BE12B0072D978 /* CurrencyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyService.swift; sourceTree = "<group>"; };
+		F321F0742F7BE12B0072D978 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		F321F0752F7BE12B0072D978 /* VoiceInputManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceInputManager.swift; sourceTree = "<group>"; };
+		F321F07B2F7BE1430072D978 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		F321F07C2F7BE1430072D978 /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
+		F32B110E2F7457DB0087E901 /* SumIt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SumIt.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F32B11112F7457DC0087E901 /* SumItApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SumItApp.swift; sourceTree = "<group>"; };
+		F32B11172F7457DE0087E901 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		F32B110B2F7457DB0087E901 /* Frameworks */ = {
@@ -29,10 +70,34 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F30FB7C92F752A8F00880078 /* Reports */ = {
+			isa = PBXGroup;
+			children = (
+				F321F0642F7BE0900072D978 /* ReportsView.swift */,
+			);
+			path = Reports;
+			sourceTree = "<group>";
+		};
+		F30FB7E82F75CD5400880078 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				F31E90352F7C01BF0034D0AF /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		F321F06D2F7BE0D50072D978 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				F31E90332F7C01980034D0AF /* LockScreenView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
 		F32B11052F7457DB0087E901 = {
 			isa = PBXGroup;
 			children = (
-				F32B11102F7457DB0087E901 /* SumIt */,
+				F32B111E2F7459C10087E901 /* SumIt */,
 				F32B110F2F7457DB0087E901 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +108,76 @@
 				F32B110E2F7457DB0087E901 /* SumIt.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F32B111E2F7459C10087E901 /* SumIt */ = {
+			isa = PBXGroup;
+			children = (
+				F32B11232F745B160087E901 /* Views */,
+				F32B11222F745B0F0087E901 /* ViewModels */,
+				F32B11212F745B060087E901 /* Services */,
+				F32B111F2F745AC30087E901 /* Models */,
+				F32B11172F7457DE0087E901 /* Assets.xcassets */,
+				F32B11112F7457DC0087E901 /* SumItApp.swift */,
+			);
+			path = SumIt;
+			sourceTree = "<group>";
+		};
+		F32B111F2F745AC30087E901 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				F321F07B2F7BE1430072D978 /* Models.swift */,
+				F321F07C2F7BE1430072D978 /* Transaction.swift */,
+				F31E903D2F7C04000034D0AF /* Wallet.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		F32B11212F745B060087E901 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				F31E90312F7C016F0034D0AF /* AppStore.swift */,
+				F31E90372F7C02000034D0AF /* AuthService.swift */,
+				F31E90392F7C03000034D0AF /* StoreKitManager.swift */,
+				F31E90412F7C05000034D0AF /* LocalizationManager.swift */,
+				F321F0722F7BE12B0072D978 /* BackendService.swift */,
+				F321F0732F7BE12B0072D978 /* CurrencyService.swift */,
+				F321F0742F7BE12B0072D978 /* SupabaseService.swift */,
+				F321F0752F7BE12B0072D978 /* VoiceInputManager.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		F32B11222F745B0F0087E901 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				F321F06F2F7BE0F60072D978 /* ChatViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		F32B11232F745B160087E901 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				F321F0602F7BE03A0072D978 /* RootView.swift */,
+				F31E903B2F7C03100034D0AF /* PaywallView.swift */,
+				F31E903F2F7C04100034D0AF /* WalletViews.swift */,
+				F321F06D2F7BE0D50072D978 /* Auth */,
+				F30FB7E82F75CD5400880078 /* Settings */,
+				F30FB7C92F752A8F00880078 /* Reports */,
+				F32B11242F745B280087E901 /* Chat */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		F32B11242F745B280087E901 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				F321F0662F7BE0AC0072D978 /* ChatComposer.swift */,
+				F321F0672F7BE0AC0072D978 /* ChatRootView.swift */,
+				F321F0682F7BE0AC0072D978 /* ConfirmationCard.swift */,
+			);
+			path = Chat;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -59,9 +194,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				F32B11102F7457DB0087E901 /* SumIt */,
 			);
 			name = SumIt;
 			packageProductDependencies = (
@@ -109,6 +241,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F32B11182F7457DE0087E901 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +252,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F321F07D2F7BE1430072D978 /* Models.swift in Sources */,
+				F321F07E2F7BE1430072D978 /* Transaction.swift in Sources */,
+				F321F0652F7BE0900072D978 /* ReportsView.swift in Sources */,
+				F321F0692F7BE0AC0072D978 /* ChatComposer.swift in Sources */,
+				F321F06A2F7BE0AC0072D978 /* ConfirmationCard.swift in Sources */,
+				F31E90362F7C01BF0034D0AF /* SettingsView.swift in Sources */,
+				F321F06B2F7BE0AC0072D978 /* ChatRootView.swift in Sources */,
+				F31E90322F7C016F0034D0AF /* AppStore.swift in Sources */,
+				F31E90382F7C02000034D0AF /* AuthService.swift in Sources */,
+				F31E903A2F7C03000034D0AF /* StoreKitManager.swift in Sources */,
+				F31E903C2F7C03100034D0AF /* PaywallView.swift in Sources */,
+				F31E903E2F7C04000034D0AF /* Wallet.swift in Sources */,
+				F31E90402F7C04100034D0AF /* WalletViews.swift in Sources */,
+				F31E90422F7C05000034D0AF /* LocalizationManager.swift in Sources */,
+				F321F0702F7BE0F60072D978 /* ChatViewModel.swift in Sources */,
+				F32B11122F7457DC0087E901 /* SumItApp.swift in Sources */,
+				F321F0612F7BE03A0072D978 /* RootView.swift in Sources */,
+				F31E90342F7C01980034D0AF /* LockScreenView.swift in Sources */,
+				F321F0762F7BE12B0072D978 /* VoiceInputManager.swift in Sources */,
+				F321F0782F7BE12B0072D978 /* CurrencyService.swift in Sources */,
+				F321F0792F7BE12B0072D978 /* BackendService.swift in Sources */,
+				F321F07A2F7BE12B0072D978 /* SupabaseService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -178,7 +333,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -236,7 +391,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -251,11 +406,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SumIt/SumIt.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = J98SU5UHZZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "SumIt использует камеру для сканирования чеков";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "SumIt использует Face ID для защиты финансовых данных";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "SumIt использует микрофон для голосового ввода";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SumIt распознаёт речь для записи расходов";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -265,9 +427,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mykyta.SumIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -283,11 +446,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SumIt/SumIt.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = J98SU5UHZZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "SumIt использует камеру для сканирования чеков";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "SumIt использует Face ID для защиты финансовых данных";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "SumIt использует микрофон для голосового ввода";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SumIt распознаёт речь для записи расходов";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -297,9 +467,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mykyta.SumIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
