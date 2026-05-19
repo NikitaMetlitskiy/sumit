@@ -348,6 +348,42 @@ final class LocalizationManager: ObservableObject {
         // MARK: Misc
         "parses_left_chip": ["en":"%d left","uk":"%d залишилось","ru":"%d осталось","es":"%d restantes","de":"%d übrig","pl":"%d pozostało"],
         "upgrade_to_pro_cta": ["en":"Upgrade to Pro","uk":"Перейти на Pro","ru":"Перейти на Pro","es":"Actualizar a Pro","de":"Auf Pro upgraden","pl":"Przejdź na Pro"],
-        "subscribe_subtitle": ["en":"Basic or Pro — pick your plan","uk":"Basic або Pro — обери план","ru":"Basic или Pro — выбери план","es":"Basic o Pro — elige tu plan","de":"Basic oder Pro — Plan wählen","pl":"Basic lub Pro — wybierz plan"]
+        "subscribe_subtitle": ["en":"Basic or Pro — pick your plan","uk":"Basic або Pro — обери план","ru":"Basic или Pro — выбери план","es":"Basic o Pro — elige tu plan","de":"Basic oder Pro — Plan wählen","pl":"Basic lub Pro — wybierz plan"],
+
+        // MARK: Home (Figma redesign)
+        "home_greeting_named": ["en":"Hey %@, what are you looking for today?","uk":"Привіт, %@! Що шукаєш сьогодні?","ru":"Привет, %@! Что ищешь сегодня?","es":"Hola %@, ¿qué buscas hoy?","de":"Hallo %@, was suchst du heute?","pl":"Hej %@, czego dziś szukasz?"],
+        "home_greeting_anon": ["en":"Hey, what are you looking for today?","uk":"Привіт! Що шукаєш сьогодні?","ru":"Привет! Что ищешь сегодня?","es":"Hola, ¿qué buscas hoy?","de":"Hallo, was suchst du heute?","pl":"Hej, czego dziś szukasz?"],
+        "home_total_balance": ["en":"Total Balance:","uk":"Загальний баланс:","ru":"Общий баланс:","es":"Saldo total:","de":"Gesamtsaldo:","pl":"Saldo całkowite:"],
+        "home_composer_placeholder": ["en":"Type any expense...","uk":"Введи будь-яку витрату...","ru":"Введи любую трату...","es":"Escribe cualquier gasto...","de":"Beliebige Ausgabe eingeben...","pl":"Wpisz dowolny wydatek..."],
+        "home_composer_footer": ["en":"Just type any expense — I'll handle the rest","uk":"Просто введи витрату — решта на мені","ru":"Просто введи трату — остальное за мной","es":"Solo escribe el gasto — yo me encargo","de":"Tippe einfach Ausgabe — ich mache den Rest","pl":"Wpisz wydatek — resztą zajmę się ja"],
+
+        // MARK: Home suggestion chips
+        "home_chip_coffee": ["en":"☕️ Coffee $4.50","uk":"☕️ Кава $4.50","ru":"☕️ Кофе $4.50","es":"☕️ Café $4.50","de":"☕️ Kaffee $4.50","pl":"☕️ Kawa $4.50"],
+        "home_chip_lunch_combo": ["en":"🥗 Lunch $12 and coffee $3","uk":"🥗 Обід $12 і кава $3","ru":"🥗 Обед $12 и кофе $3","es":"🥗 Comida $12 y café $3","de":"🥗 Mittag $12 und Kaffee $3","pl":"🥗 Lunch $12 i kawa $3"],
+        "home_chip_uber": ["en":"🚕 Uber $18","uk":"🚕 Uber $18","ru":"🚕 Uber $18","es":"🚕 Uber $18","de":"🚕 Uber $18","pl":"🚕 Uber $18"],
+        "home_chip_groceries": ["en":"🛒 Groceries $67","uk":"🛒 Продукти $67","ru":"🛒 Продукты $67","es":"🛒 Compras $67","de":"🛒 Lebensmittel $67","pl":"🛒 Zakupy $67"],
+        "home_chip_gym": ["en":"💪 Gym $40","uk":"💪 Спортзал $40","ru":"💪 Спортзал $40","es":"💪 Gimnasio $40","de":"💪 Fitness $40","pl":"💪 Siłownia $40"],
+
+        // MARK: Confirmation card (redesign)
+        "scan": ["en":"Scan","uk":"Сканувати","ru":"Сканировать","es":"Escanear","de":"Scannen","pl":"Skanuj"],
+        "tx_all_correct": ["en":"All correct? Tap to edit if needed","uk":"Все вірно? Натисни щоб редагувати","ru":"Всё верно? Нажми чтобы редактировать","es":"¿Todo correcto? Toca para editar","de":"Alles korrekt? Tippe zum Bearbeiten","pl":"Wszystko ok? Stuknij, by edytować"],
+        "add_wallet_to_save": ["en":"Add Wallet to Save","uk":"Додай гаманець, щоб зберегти","ru":"Добавь кошелёк, чтобы сохранить","es":"Añade cartera para guardar","de":"Wallet hinzufügen zum Speichern","pl":"Dodaj portfel, aby zapisać"],
+
+        // MARK: Detail / Edit
+        "cancel_editing": ["en":"Cancel editing","uk":"Скасувати редагування","ru":"Отменить редактирование","es":"Cancelar edición","de":"Bearbeiten abbrechen","pl":"Anuluj edycję"],
+        "share": ["en":"Share","uk":"Поділитися","ru":"Поделиться","es":"Compartir","de":"Teilen","pl":"Udostępnij"],
+
+        // MARK: Quick summary sheet
+        "wallet_manage_short": ["en":"Manage","uk":"Керувати","ru":"Управление","es":"Gestionar","de":"Verwalten","pl":"Zarządzaj"],
+        "savings": ["en":"Savings","uk":"Заощадження","ru":"Сбережения","es":"Ahorros","de":"Ersparnisse","pl":"Oszczędności"],
+        "ai_powered_disclaimer": ["en":"AI-powered · Always double-check important entries","uk":"На основі AI · Перевіряй важливі записи","ru":"На основе AI · Проверяй важные записи","es":"Con IA · Revisa siempre los registros importantes","de":"KI-gestützt · Wichtige Einträge stets prüfen","pl":"AI · Zawsze weryfikuj ważne wpisy"],
+
+        // MARK: Reports (redesign)
+        "total_wealth": ["en":"Total wealth","uk":"Загальний капітал","ru":"Общий капитал","es":"Patrimonio total","de":"Gesamtvermögen","pl":"Cały majątek"],
+        "statistics": ["en":"Statistics","uk":"Статистика","ru":"Статистика","es":"Estadísticas","de":"Statistik","pl":"Statystyki"],
+        "overview_short": ["en":"Overview","uk":"Огляд","ru":"Обзор","es":"Resumen","de":"Übersicht","pl":"Przegląd"],
+        "statistic": ["en":"Statistic","uk":"Статистика","ru":"Статистика","es":"Estadística","de":"Statistik","pl":"Statystyka"],
+        "saved": ["en":"Saved","uk":"Накопичено","ru":"Накоплено","es":"Ahorrado","de":"Gespart","pl":"Zaoszczędzono"],
+        "spent": ["en":"Spent","uk":"Витрачено","ru":"Потрачено","es":"Gastado","de":"Ausgegeben","pl":"Wydano"]
     ]
 }
