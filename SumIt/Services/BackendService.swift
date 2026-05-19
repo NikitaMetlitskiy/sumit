@@ -1,6 +1,8 @@
 import Foundation
 
-struct BackendParseResponse: Decodable, Sendable {
+/// Marked `Sendable` so it can cross the actor boundary in BackendService
+/// without inheriting MainActor isolation from the enclosing file.
+nonisolated struct BackendParseResponse: Decodable, Sendable {
     let type: String?
     let amount: Double?
     let currency: String?

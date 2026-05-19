@@ -1,9 +1,12 @@
 import Foundation
 
+/// Stateless utility — all methods marked `nonisolated` so they can be called from
+/// actors and the main actor without crossing isolation boundaries
+/// (matters under Swift 6's default-MainActor isolation).
 struct CurrencyService {
     /// 1 USD = X foreign. Stablecoins pinned to 1; crypto rates are placeholders
     /// — see `LiveRateLoader` (TODO) for daily refresh from a server endpoint.
-    static let rates: [String: Double] = [
+    nonisolated(unsafe) static let rates: [String: Double] = [
         "USD":  1.0,
         "EUR":  0.922,
         "UAH":  41.5,
@@ -22,23 +25,24 @@ struct CurrencyService {
     ]
 
     /// Returns true if currency is known. Callers should reject saves with unknown currencies.
-    static func isSupported(_ currency: String) -> Bool {
+    nonisolated static func isSupported(_ currency: String) -> Bool {
         rates[currency.uppercased()] != nil
     }
 
-    static func toUSD(_ currency: String) -> Double {
+    nonisolated static func toUSD(_ currency: String) -> Double {
         guard let r = rates[currency.uppercased()], r != 0 else { return 1.0 }
         return 1.0 / r
     }
 
-    static func usdTo(_ currency: String) -> Double {
+    nonisolated static func usdTo(_ currency: String) -> Double {
         rates[currency.uppercased()] ?? 1.0
     }
 
-    static func convert(_ amount: Double, from: String, to: String) -> Double {
+    nonisolated static func convert(_ amount: Double, from: String, to: String) -> Double {
         amount * toUSD(from) * usdTo(to)
     }
 
+    @MainActor
     static var supported: [(code: String, name: String, flag: String)] { [
         ("USD",  L("cur_usd"),  "🇺🇸"),
         ("EUR",  L("cur_eur"),  "🇪🇺"),

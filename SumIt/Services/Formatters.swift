@@ -1,7 +1,10 @@
 import Foundation
 
-/// Locale-aware formatters cached on first use. Locale is rebuilt when the user
-/// changes language in-app, so "1 234,56" vs "1,234.56" follows the chosen language.
+/// Locale-aware formatters. Split into two:
+///   • `Formatters` — main-actor cache for user-language sensitive helpers (amount, date)
+///   • `Formatters.iso` / `Formatters.date(fromISO:)` — `nonisolated` and callable from
+///     any actor; used by Supabase serialization where the device locale is irrelevant.
+@MainActor
 enum Formatters {
 
     private static var cachedLocale: Locale = currentLocale()
@@ -16,9 +19,7 @@ enum Formatters {
         return f
     }()
 
-    private static let isoFormatter: ISO8601DateFormatter = ISO8601DateFormatter()
-
-    // MARK: — Public
+    // MARK: — Locale-aware (MainActor only — view layer)
 
     /// "1 234.56" / "1.234,56" depending on user language. Currency code appended as plain text.
     static func amount(_ value: Double, currency: String? = nil, fractionDigits: Int = 0) -> String {
@@ -54,12 +55,6 @@ enum Formatters {
         return fmt.string(from: date)
     }
 
-    /// ISO8601 for Supabase POSTs.
-    static func iso(_ date: Date) -> String { isoFormatter.string(from: date) }
-
-    /// Parse ISO8601.
-    static func date(fromISO string: String) -> Date? { isoFormatter.date(from: string) }
-
     // MARK: — Helpers
 
     private static func currentLocale() -> Locale {
@@ -77,4 +72,14 @@ enum Formatters {
         guard let c = currency?.uppercased() else { return true }
         return !["BTC", "ETH"].contains(c)
     }
+}
+
+// MARK: — ISO 8601 (callable from any actor — no user-locale dependence)
+
+extension Formatters {
+    /// Thread-safe shared ISO formatter for Supabase serialization.
+    nonisolated(unsafe) private static let isoFormatter: ISO8601DateFormatter = ISO8601DateFormatter()
+
+    nonisolated static func iso(_ date: Date) -> String { isoFormatter.string(from: date) }
+    nonisolated static func date(fromISO string: String) -> Date? { isoFormatter.date(from: string) }
 }

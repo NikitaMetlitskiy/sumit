@@ -116,7 +116,7 @@ actor SupabaseService {
     // MARK: — Sync unsynced transactions with token refresh + early abort on 401
     func syncUnsynced(_ snapshots: [TransactionSnapshot]) async -> [String] {
         // Returns local_ids that were successfully synced.
-        await MainActor.run { _ = AuthService.shared.refreshSessionIfNeeded() }
+        _ = await AuthService.shared.refreshSessionIfNeeded()
         var synced: [String] = []
         for snap in snapshots {
             do {

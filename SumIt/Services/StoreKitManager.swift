@@ -93,7 +93,7 @@ final class StoreKitManager: ObservableObject {
             let result = try await product.purchase()
             switch result {
             case .success(let verification):
-                let tx = try checkVerified(verification)
+                let tx: StoreKit.Transaction = try checkVerified(verification)
                 await updateTier(from: tx)
                 // Forward JWS to server for authoritative validation.
                 await reportPurchase(jws: tx.jwsRepresentation)
@@ -174,10 +174,13 @@ final class StoreKitManager: ObservableObject {
     private func listenForTransactions() -> Task<Void, Never> {
         Task.detached { [weak self] in
             for await result in StoreKit.Transaction.updates {
+                // Make the type explicit — our SwiftData model is also called `Transaction`,
+                // and without this annotation the compiler picks the wrong one.
                 guard case .verified(let tx) = result else { continue }
-                await self?.updateTier(from: tx)
-                await self?.reportPurchase(jws: tx.jwsRepresentation)
-                await tx.finish()
+                let storeTx: StoreKit.Transaction = tx
+                await self?.updateTier(from: storeTx)
+                await self?.reportPurchase(jws: storeTx.jwsRepresentation)
+                await storeTx.finish()
             }
         }
     }
