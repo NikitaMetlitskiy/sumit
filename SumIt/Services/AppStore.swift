@@ -16,7 +16,7 @@ final class AppStore: ObservableObject {
         seedCategoriesIfNeeded()
         loadCategories()
         loadSettings()
-        Log.info("AppStore setup complete. Categories: \(allCategories.count)")
+        Log.info("AppStore setup complete. Categories: \(self.allCategories.count)")
 
         Task {
             _ = await AuthService.shared.refreshSessionIfNeeded()
