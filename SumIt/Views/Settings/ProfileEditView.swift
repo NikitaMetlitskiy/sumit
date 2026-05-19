@@ -44,14 +44,14 @@ struct ProfileEditView: View {
 
     @ViewBuilder
     private var avatarSection: some View {
+        // Resolve MainActor state once at the View-body level. PhotosPicker's label
+        // closure is treated as Sendable under Swift 6 and can't pull from MainActor
+        // properties directly, but it can capture this already-resolved UIImage value.
+        let displayedImage: UIImage? = image ?? store.userAvatar
         Section(L("profile_photo")) {
             HStack {
                 Spacer()
                 PhotosPicker(selection: $item, matching: .images) {
-                    // Read MainActor properties up front, OUTSIDE the `??` operator,
-                    // whose rhs is a nonisolated autoclosure.
-                    let stored: UIImage? = store.userAvatar
-                    let displayedImage: UIImage? = image ?? stored
                     ZStack(alignment: .bottomTrailing) {
                         Group {
                             if let img = displayedImage {
