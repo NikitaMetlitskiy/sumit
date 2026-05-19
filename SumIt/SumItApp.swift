@@ -7,7 +7,7 @@
 
 import SwiftUI
 import SwiftData
-import LocalAuthentication
+@preconcurrency import LocalAuthentication  // pre-Swift-concurrency API; LAContext is not Sendable
 import UserNotifications
 import Combine
 

@@ -2,8 +2,10 @@ import SwiftUI
 import Combine
 
 // MARK: — Global localization function
+/// Free function — implicitly nonisolated. Backed by `LocalizationManager.translate(_:)`
+/// which reads only Sendable static state, so it's safe to call from models / actors.
 func L(_ key: String) -> String {
-    LocalizationManager.shared.t(key)
+    LocalizationManager.translate(key)
 }
 
 // MARK: — Supported languages
@@ -39,36 +41,62 @@ enum AppLanguage: String, CaseIterable, Codable {
 }
 
 // MARK: — Localization Manager
+/// Hybrid: a MainActor `ObservableObject` so SwiftUI can react to language changes,
+/// PLUS a nonisolated static translation API so SwiftData models and actors can use it.
+/// The single source of truth (`translations`) is a static immutable dict — Sendable by
+/// construction, no synchronization required.
 @MainActor
 final class LocalizationManager: ObservableObject {
-    static let shared = LocalizationManager()
-    @Published var current: AppLanguage
+    nonisolated static let shared = LocalizationManager()
+    @Published var current: AppLanguage {
+        didSet { Self.currentLanguageRaw = current.rawValue }
+    }
+
+    /// Current language code cached as a Sendable string so `L(key)` can read it
+    /// from any actor. Updated whenever `current` changes.
+    nonisolated(unsafe) static var currentLanguageRaw: String = {
+        if let saved = UserDefaults.standard.string(forKey: "app_language") { return saved }
+        let preferred = Locale.preferredLanguages.first ?? "en"
+        return String(preferred.prefix(2))
+    }()
 
     private let key = "app_language"
 
-    private init() {
+    nonisolated private init() {
+        // Same logic as the static cache but executed during MainActor init.
+        let initial: AppLanguage
         if let saved = UserDefaults.standard.string(forKey: "app_language"),
            let lang = AppLanguage(rawValue: saved) {
-            self.current = lang
+            initial = lang
         } else {
-            // Auto-detect from system — check preferredLanguages first (more reliable)
             let preferred = Locale.preferredLanguages.first ?? "en"
-            let code = String(preferred.prefix(2))  // "ru-RU" → "ru", "en-US" → "en"
-            self.current = AppLanguage(rawValue: code) ?? .en
+            let code = String(preferred.prefix(2))
+            initial = AppLanguage(rawValue: code) ?? .en
         }
+        // `current` is MainActor-isolated; assigning during a nonisolated init is allowed
+        // because no other thread can observe `self` yet.
+        self.current = initial
+        Self.currentLanguageRaw = initial.rawValue
     }
 
     func setLanguage(_ lang: AppLanguage) {
         current = lang
         UserDefaults.standard.set(lang.rawValue, forKey: key)
+        Self.currentLanguageRaw = lang.rawValue
     }
 
-    func t(_ k: String) -> String {
-        translations[k]?[current.rawValue] ?? translations[k]?["en"] ?? k
+    func t(_ k: String) -> String { Self.translate(k) }
+
+    /// Nonisolated lookup used by `L(_:)`. Reads only static immutable data.
+    nonisolated static func translate(_ key: String) -> String {
+        translationsData[key]?[currentLanguageRaw] ?? translationsData[key]?["en"] ?? key
     }
 
-    // MARK: — All translations
-    let translations: [String: [String: String]] = [
+    /// Backwards-compatible accessor so existing call sites (`LocalizationManager.shared.translations`) continue to work.
+    nonisolated var translations: [String: [String: String]] { Self.translationsData }
+
+    // MARK: — All translations (Sendable static dict — see `translations` computed accessor above)
+    nonisolated static let translationsData: [String: [String: String]] = [
         // MARK: General
         "app_name": ["en":"SumIt","uk":"SumIt","ru":"SumIt","es":"SumIt","de":"SumIt","pl":"SumIt"],
         "financial_assistant": ["en":"Financial Assistant","uk":"Фінансовий асистент","ru":"Финансовый ассистент","es":"Asistente financiero","de":"Finanzassistent","pl":"Asystent finansowy"],

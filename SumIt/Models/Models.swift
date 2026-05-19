@@ -67,14 +67,13 @@ final class Category {
     var color: Color { Color(hex: colorHex) ?? .blue }
 
     /// Localized display name for default categories; raw name for custom ones.
-    /// Uses LocalizationManager.translations.keys for a fast existence check (no string-compare hack).
+    /// Uses the global nonisolated `L(_:)` — safe to call from SwiftData @Model accessors.
     var displayName: String {
         guard isDefault else { return name }
         let key = "cat_\(name.lowercased())"
-        if LocalizationManager.shared.translations[key] != nil {
-            return L(key)
-        }
-        return name
+        let translated = L(key)
+        // L() returns the key itself when no translation exists.
+        return translated == key ? name : translated
     }
 
     init(name: String, icon: String, colorHex: String,

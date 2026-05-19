@@ -6,7 +6,7 @@ import Foundation
 struct CurrencyService {
     /// 1 USD = X foreign. Stablecoins pinned to 1; crypto rates are placeholders
     /// — see `LiveRateLoader` (TODO) for daily refresh from a server endpoint.
-    nonisolated(unsafe) static let rates: [String: Double] = [
+    static let rates: [String: Double] = [
         "USD":  1.0,
         "EUR":  0.922,
         "UAH":  41.5,

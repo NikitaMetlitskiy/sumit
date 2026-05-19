@@ -27,7 +27,7 @@ struct StatisticsView: View {
     }
 
     private var previousRange: (Date, Date) {
-        let (curStart, curEnd) = range
+        let (curStart, _) = range
         let prevEnd = curStart
         let prevStart = Calendar.current.date(byAdding: .day, value: -period.days, to: prevEnd) ?? prevEnd
         return (prevStart, prevEnd)

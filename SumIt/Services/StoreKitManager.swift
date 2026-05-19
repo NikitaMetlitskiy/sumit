@@ -96,7 +96,7 @@ final class StoreKitManager: ObservableObject {
                 let tx: StoreKit.Transaction = try checkVerified(verification)
                 await updateTier(from: tx)
                 // Forward JWS to server for authoritative validation.
-                await reportPurchase(jws: tx.jwsRepresentation)
+                await reportPurchase(jws: jws(of: tx))
                 await tx.finish()
                 purchaseInProgress = false
                 return true
@@ -174,15 +174,25 @@ final class StoreKitManager: ObservableObject {
     private func listenForTransactions() -> Task<Void, Never> {
         Task.detached { [weak self] in
             for await result in StoreKit.Transaction.updates {
-                // Make the type explicit — our SwiftData model is also called `Transaction`,
-                // and without this annotation the compiler picks the wrong one.
                 guard case .verified(let tx) = result else { continue }
-                let storeTx: StoreKit.Transaction = tx
-                await self?.updateTier(from: storeTx)
-                await self?.reportPurchase(jws: storeTx.jwsRepresentation)
-                await storeTx.finish()
+                // Pull JWS via a helper that takes the type explicitly — needed because
+                // our SwiftData model is also named `Transaction` and shadows the StoreKit one.
+                await self?.updateTier(from: tx)
+                await self?.reportPurchase(jws: StoreKitManager.jwsString(of: tx))
+                await tx.finish()
             }
         }
+    }
+
+    /// Small disambiguating helper. The parameter type is fully-qualified so the
+    /// compiler can't accidentally resolve `.jwsRepresentation` against our model.
+    nonisolated static func jwsString(of tx: StoreKit.Transaction) -> String {
+        tx.jwsRepresentation
+    }
+
+    /// Instance-level convenience that delegates to the static helper.
+    private func jws(of tx: StoreKit.Transaction) -> String {
+        Self.jwsString(of: tx)
     }
 
     private func updateTier(from tx: StoreKit.Transaction) async {

@@ -72,8 +72,8 @@ struct ConfirmationCard: View {
             header
             amountBlock
             Divider().padding(.horizontal, DS.Space.l)
-            detailRow(label: L("category"), trailing: categoryChip)
-            detailRow(label: L("merchant"), trailing: merchantTrailing)
+            detailRow(label: L("category")) { categoryChip }
+            detailRow(label: L("merchant")) { merchantTrailing }
             walletSection
         }
         .background(DS.Color.card)
@@ -134,16 +134,18 @@ struct ConfirmationCard: View {
     }
 
     private func detailRow<Trailing: View>(label: String, @ViewBuilder trailing: () -> Trailing) -> some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 15))
-                .foregroundColor(.secondary)
-            Spacer()
-            trailing()
+        VStack(spacing: 0) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 15))
+                    .foregroundColor(.secondary)
+                Spacer()
+                trailing()
+            }
+            .padding(.horizontal, DS.Space.l)
+            .padding(.vertical, 12)
+            Divider().padding(.horizontal, DS.Space.l)
         }
-        .padding(.horizontal, DS.Space.l)
-        .padding(.vertical, 12)
-        Divider().padding(.horizontal, DS.Space.l)
     }
 
     private var categoryChip: some View {

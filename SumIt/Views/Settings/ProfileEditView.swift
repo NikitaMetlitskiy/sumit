@@ -48,9 +48,12 @@ struct ProfileEditView: View {
             HStack {
                 Spacer()
                 PhotosPicker(selection: $item, matching: .images) {
+                    // Resolve the avatar up front so the rhs of `??` isn't a nonisolated
+                    // autoclosure trying to read a MainActor property.
+                    let displayedImage: UIImage? = image ?? store.userAvatar
                     ZStack(alignment: .bottomTrailing) {
                         Group {
-                            if let img = image ?? store.userAvatar {
+                            if let img = displayedImage {
                                 Image(uiImage: img).resizable().scaledToFill()
                                     .frame(width: 88, height: 88).clipShape(Circle())
                             } else if name.isEmpty {
