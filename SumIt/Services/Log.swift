@@ -5,7 +5,7 @@ import os
 /// amounts and raw payloads out of TestFlight/App Store crash logs and Console.app.
 /// All methods `nonisolated` so they can be called from any actor context.
 enum Log {
-    nonisolated(unsafe) private static let logger = Logger(subsystem: "com.mykyta.SumIt", category: "app")
+    nonisolated private static let logger = Logger(subsystem: "com.mykyta.SumIt", category: "app")
 
     nonisolated static func debug(_ message: @autoclosure () -> String) {
         #if DEBUG

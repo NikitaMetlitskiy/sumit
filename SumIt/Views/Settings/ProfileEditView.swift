@@ -48,9 +48,10 @@ struct ProfileEditView: View {
             HStack {
                 Spacer()
                 PhotosPicker(selection: $item, matching: .images) {
-                    // Resolve the avatar up front so the rhs of `??` isn't a nonisolated
-                    // autoclosure trying to read a MainActor property.
-                    let displayedImage: UIImage? = image ?? store.userAvatar
+                    // Read MainActor properties up front, OUTSIDE the `??` operator,
+                    // whose rhs is a nonisolated autoclosure.
+                    let stored: UIImage? = store.userAvatar
+                    let displayedImage: UIImage? = image ?? stored
                     ZStack(alignment: .bottomTrailing) {
                         Group {
                             if let img = displayedImage {

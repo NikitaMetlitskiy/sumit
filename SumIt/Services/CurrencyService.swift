@@ -6,7 +6,8 @@ import Foundation
 struct CurrencyService {
     /// 1 USD = X foreign. Stablecoins pinned to 1; crypto rates are placeholders
     /// — see `LiveRateLoader` (TODO) for daily refresh from a server endpoint.
-    static let rates: [String: Double] = [
+    /// Marked `nonisolated` so actors (BackendService.isSupported check) can read it.
+    nonisolated static let rates: [String: Double] = [
         "USD":  1.0,
         "EUR":  0.922,
         "UAH":  41.5,
@@ -42,6 +43,8 @@ struct CurrencyService {
         amount * toUSD(from) * usdTo(to)
     }
 
+    /// Localized currency rows for pickers. Stays MainActor because it calls `L(_:)` —
+    /// which is fine since pickers always run on the main thread.
     @MainActor
     static var supported: [(code: String, name: String, flag: String)] { [
         ("USD",  L("cur_usd"),  "🇺🇸"),

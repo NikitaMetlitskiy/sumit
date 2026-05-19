@@ -41,59 +41,55 @@ enum AppLanguage: String, CaseIterable, Codable {
 }
 
 // MARK: — Localization Manager
-/// Hybrid: a MainActor `ObservableObject` so SwiftUI can react to language changes,
-/// PLUS a nonisolated static translation API so SwiftData models and actors can use it.
-/// The single source of truth (`translations`) is a static immutable dict — Sendable by
-/// construction, no synchronization required.
+/// Hybrid:
+///   • MainActor `ObservableObject` so SwiftUI views react to language changes via `current`.
+///   • Nonisolated static API (`translate`, `currentLanguageRaw`, `translationsData`) so
+///     SwiftData @Model accessors and actors can call `L(_:)` without hopping to MainActor.
+/// The single source of truth — `translationsData` — is a Sendable immutable dictionary.
 @MainActor
 final class LocalizationManager: ObservableObject {
-    nonisolated static let shared = LocalizationManager()
+    static let shared = LocalizationManager()
     @Published var current: AppLanguage {
-        didSet { Self.currentLanguageRaw = current.rawValue }
+        didSet { LocalizationManager.currentLanguageRaw = current.rawValue }
     }
 
-    /// Current language code cached as a Sendable string so `L(key)` can read it
-    /// from any actor. Updated whenever `current` changes.
+    /// Sendable cache of the current language code so `L(_:)` works from any actor.
+    /// Updated by `current.didSet` and by the initializer.
     nonisolated(unsafe) static var currentLanguageRaw: String = {
         if let saved = UserDefaults.standard.string(forKey: "app_language") { return saved }
         let preferred = Locale.preferredLanguages.first ?? "en"
         return String(preferred.prefix(2))
     }()
 
-    private let key = "app_language"
+    private let storageKey = "app_language"
 
-    nonisolated private init() {
-        // Same logic as the static cache but executed during MainActor init.
-        let initial: AppLanguage
-        if let saved = UserDefaults.standard.string(forKey: "app_language"),
+    private init() {
+        if let saved = UserDefaults.standard.string(forKey: storageKey),
            let lang = AppLanguage(rawValue: saved) {
-            initial = lang
+            self.current = lang
         } else {
             let preferred = Locale.preferredLanguages.first ?? "en"
             let code = String(preferred.prefix(2))
-            initial = AppLanguage(rawValue: code) ?? .en
+            self.current = AppLanguage(rawValue: code) ?? .en
         }
-        // `current` is MainActor-isolated; assigning during a nonisolated init is allowed
-        // because no other thread can observe `self` yet.
-        self.current = initial
-        Self.currentLanguageRaw = initial.rawValue
+        LocalizationManager.currentLanguageRaw = self.current.rawValue
     }
 
     func setLanguage(_ lang: AppLanguage) {
         current = lang
-        UserDefaults.standard.set(lang.rawValue, forKey: key)
-        Self.currentLanguageRaw = lang.rawValue
+        UserDefaults.standard.set(lang.rawValue, forKey: storageKey)
+        LocalizationManager.currentLanguageRaw = lang.rawValue
     }
 
-    func t(_ k: String) -> String { Self.translate(k) }
+    func t(_ k: String) -> String { LocalizationManager.translate(k) }
 
-    /// Nonisolated lookup used by `L(_:)`. Reads only static immutable data.
+    /// Nonisolated lookup used by `L(_:)`. Reads only static immutable data + the Sendable string cache.
     nonisolated static func translate(_ key: String) -> String {
         translationsData[key]?[currentLanguageRaw] ?? translationsData[key]?["en"] ?? key
     }
 
     /// Backwards-compatible accessor so existing call sites (`LocalizationManager.shared.translations`) continue to work.
-    nonisolated var translations: [String: [String: String]] { Self.translationsData }
+    nonisolated var translations: [String: [String: String]] { LocalizationManager.translationsData }
 
     // MARK: — All translations (Sendable static dict — see `translations` computed accessor above)
     nonisolated static let translationsData: [String: [String: String]] = [

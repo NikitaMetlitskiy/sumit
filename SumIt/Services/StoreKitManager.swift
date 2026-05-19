@@ -93,10 +93,13 @@ final class StoreKitManager: ObservableObject {
             let result = try await product.purchase()
             switch result {
             case .success(let verification):
+                // `jwsRepresentation` lives on the VerificationResult itself, not the
+                // unwrapped Transaction — pulling it here also sidesteps our SwiftData
+                // `Transaction` model shadowing the StoreKit type.
+                let jws = verification.jwsRepresentation
                 let tx: StoreKit.Transaction = try checkVerified(verification)
                 await updateTier(from: tx)
-                // Forward JWS to server for authoritative validation.
-                await reportPurchase(jws: jws(of: tx))
+                await reportPurchase(jws: jws)
                 await tx.finish()
                 purchaseInProgress = false
                 return true
@@ -174,25 +177,14 @@ final class StoreKitManager: ObservableObject {
     private func listenForTransactions() -> Task<Void, Never> {
         Task.detached { [weak self] in
             for await result in StoreKit.Transaction.updates {
+                // Read JWS from the VerificationResult before unwrapping.
+                let jws = result.jwsRepresentation
                 guard case .verified(let tx) = result else { continue }
-                // Pull JWS via a helper that takes the type explicitly — needed because
-                // our SwiftData model is also named `Transaction` and shadows the StoreKit one.
                 await self?.updateTier(from: tx)
-                await self?.reportPurchase(jws: StoreKitManager.jwsString(of: tx))
+                await self?.reportPurchase(jws: jws)
                 await tx.finish()
             }
         }
-    }
-
-    /// Small disambiguating helper. The parameter type is fully-qualified so the
-    /// compiler can't accidentally resolve `.jwsRepresentation` against our model.
-    nonisolated static func jwsString(of tx: StoreKit.Transaction) -> String {
-        tx.jwsRepresentation
-    }
-
-    /// Instance-level convenience that delegates to the static helper.
-    private func jws(of tx: StoreKit.Transaction) -> String {
-        Self.jwsString(of: tx)
     }
 
     private func updateTier(from tx: StoreKit.Transaction) async {
