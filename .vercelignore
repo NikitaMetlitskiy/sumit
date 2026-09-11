@@ -1,0 +1,11 @@
+# Deploy only the backend. The Vercel project's Root Directory is
+# Backend/vercel-project; nothing else in this repository belongs in a
+# deployment, and the root directory is served as static output.
+/*
+!/Backend
+/Backend/*
+!/Backend/vercel-project
+/Backend/vercel-project/node_modules
+/Backend/vercel-project/test
+/Backend/vercel-project/.env
+/Backend/vercel-project/.env.local

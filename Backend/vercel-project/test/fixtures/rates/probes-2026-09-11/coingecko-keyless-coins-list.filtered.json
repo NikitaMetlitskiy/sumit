@@ -1,0 +1,677 @@
+[
+ {
+  "id": "abstract-bridged-usdt-abstract",
+  "symbol": "usdt",
+  "name": "Abstract Bridged USDT (Abstract)"
+ },
+ {
+  "id": "alcor-ibc-bridged-usdt-wax",
+  "symbol": "usdt",
+  "name": "Alcor IBC Bridged USDT (WAX)"
+ },
+ {
+  "id": "anubis-bridged-eth-anubis",
+  "symbol": "eth",
+  "name": "Anubis Bridged ETH (Anubis)"
+ },
+ {
+  "id": "anubis-bridged-usdc-anubis",
+  "symbol": "usdc",
+  "name": "Anubis Bridged USDC (Anubis)"
+ },
+ {
+  "id": "anubis-bridged-usdt-anubis",
+  "symbol": "usdt",
+  "name": "Anubis Bridged USDT (Anubis)"
+ },
+ {
+  "id": "areon-bridged-usdt-areon-network",
+  "symbol": "usdt",
+  "name": "Areum Bridged USDT (Areum Network)"
+ },
+ {
+  "id": "batcat",
+  "symbol": "btc",
+  "name": "batcat"
+ },
+ {
+  "id": "beam-bridged-usdc-beam",
+  "symbol": "usdc",
+  "name": "Beam Bridged USDC (Beam)"
+ },
+ {
+  "id": "beam-bridged-usdt-beam",
+  "symbol": "usdt",
+  "name": "Beam Bridged USDT (Beam)"
+ },
+ {
+  "id": "bifrost-bridged-eth-bifrost",
+  "symbol": "eth",
+  "name": "Bifrost Bridged ETH (Bifrost)"
+ },
+ {
+  "id": "bifrost-bridged-usdc-bifrost",
+  "symbol": "usdc",
+  "name": "Bifrost Bridged USDC (Bifrost)"
+ },
+ {
+  "id": "big-tom-coin",
+  "symbol": "btc",
+  "name": "Big Tom Coin"
+ },
+ {
+  "id": "binance-bridged-usdc-bnb-smart-chain",
+  "symbol": "usdc",
+  "name": "Binance Bridged USDC (BNB Smart Chain)"
+ },
+ {
+  "id": "bitcoin",
+  "symbol": "btc",
+  "name": "Bitcoin"
+ },
+ {
+  "id": "bitcoin-ai-2",
+  "symbol": "btc",
+  "name": "Bitcoin AI"
+ },
+ {
+  "id": "bitcoin-base",
+  "symbol": "btc",
+  "name": "Bitcoin Base"
+ },
+ {
+  "id": "bitcoin-second-chance",
+  "symbol": "btc",
+  "name": "Bitcoin Second Chance"
+ },
+ {
+  "id": "bobby-the-cat",
+  "symbol": "btc",
+  "name": "Bobby The Cat"
+ },
+ {
+  "id": "bobby-the-cat-2",
+  "symbol": "btc",
+  "name": "Bobby The Cat"
+ },
+ {
+  "id": "bob-network-bridged-usdt-bob-network",
+  "symbol": "usdt",
+  "name": "BOB Network Bridged USDT (BOB Network)"
+ },
+ {
+  "id": "bot-chain-bridged-usdt-bot-chain",
+  "symbol": "usdt",
+  "name": "BOT Chain Bridged USDT (BOT Chain)"
+ },
+ {
+  "id": "bridged-binance-peg-ethereum-opbnb",
+  "symbol": "eth",
+  "name": "Bridged Binance-Peg Ethereum (opBNB)"
+ },
+ {
+  "id": "bridged-tether-fuse",
+  "symbol": "usdt",
+  "name": "Fuse Bridged USDT (Fuse)"
+ },
+ {
+  "id": "bridged-tether-linea",
+  "symbol": "usdt",
+  "name": "Linea Bridged USDT (Linea)"
+ },
+ {
+  "id": "bridged-tether-manta-pacific",
+  "symbol": "usdt",
+  "name": "Manta Pacific Bridged USDT (Manta Pacific)"
+ },
+ {
+  "id": "bridged-tether-opbnb",
+  "symbol": "usdt",
+  "name": "opBNB Bridged USDT (opBNB)"
+ },
+ {
+  "id": "bridged-tether-scroll",
+  "symbol": "usdt",
+  "name": "Scroll Bridged USDT (Scroll)"
+ },
+ {
+  "id": "bridged-tether-starkgate",
+  "symbol": "usdt",
+  "name": "StarkGate Bridged USDT (StarkNet)"
+ },
+ {
+  "id": "bridged-usdc",
+  "symbol": "usdc",
+  "name": "Bridged USDC"
+ },
+ {
+  "id": "bridged-usdc-chainport",
+  "symbol": "usdc",
+  "name": "Chainport Bridged USDC (Humanode)"
+ },
+ {
+  "id": "bridged-usdc-core",
+  "symbol": "usdc",
+  "name": "CoreDAO Bridged USDC (Core)"
+ },
+ {
+  "id": "bridged-usdc-immutable-zkevm",
+  "symbol": "usdc",
+  "name": "Bridged USDC (Immutable zkEVM)"
+ },
+ {
+  "id": "bridged-usdc-moonriver",
+  "symbol": "usdc",
+  "name": "Bridged USDC (Moonriver)"
+ },
+ {
+  "id": "bridged-usd-coin-linea",
+  "symbol": "usdc",
+  "name": "Linea Bridged USDC (Linea)"
+ },
+ {
+  "id": "bridged-usd-coin-manta-pacific",
+  "symbol": "usdc",
+  "name": "Bridged USD Coin (Manta Pacific)"
+ },
+ {
+  "id": "bridged-usd-coin-scroll",
+  "symbol": "usdc",
+  "name": "Bridged USD Coin (Scroll)"
+ },
+ {
+  "id": "bridged-usd-coin-starkgate",
+  "symbol": "usdc",
+  "name": "StarkGate Bridged USDC (Starknet)"
+ },
+ {
+  "id": "bridged-usdt",
+  "symbol": "usdt",
+  "name": "Bridged USDT"
+ },
+ {
+  "id": "bridged-usdt-core",
+  "symbol": "usdt",
+  "name": "CoreDAO Bridged USDT (Core)"
+ },
+ {
+  "id": "bridged-wrapped-ether-eclipse",
+  "symbol": "eth",
+  "name": "Bridged Wrapped Ether (Eclipse)"
+ },
+ {
+  "id": "bridged-wrapped-ether-starkgate",
+  "symbol": "eth",
+  "name": "Bridged Ether (StarkGate)"
+ },
+ {
+  "id": "buy-the-cat",
+  "symbol": "btc",
+  "name": "Buy The Cat"
+ },
+ {
+  "id": "ccip-bridged-usdc-ronin",
+  "symbol": "usdc",
+  "name": "CCIP Bridged USDC (Ronin)"
+ },
+ {
+  "id": "celer-bridged-usdc-astar",
+  "symbol": "usdc",
+  "name": "Celer Bridged USDC (Astar)"
+ },
+ {
+  "id": "celer-bridged-usdc-conflux",
+  "symbol": "usdc",
+  "name": "Celer Bridged USDC (Conflux)"
+ },
+ {
+  "id": "celer-bridged-usdc-filecoin",
+  "symbol": "usdc",
+  "name": "Celer Bridged USDC (Filecoin)"
+ },
+ {
+  "id": "celer-bridged-usdt-astar",
+  "symbol": "usdt",
+  "name": "Celer Bridged USDT (Astar)"
+ },
+ {
+  "id": "celer-bridged-usdt-conflux",
+  "symbol": "usdt",
+  "name": "Celer Bridged USDT (Conflux)"
+ },
+ {
+  "id": "cronos-bridged-usdc-cronos",
+  "symbol": "usdc",
+  "name": "Cronos Bridged USDC (Cronos)"
+ },
+ {
+  "id": "cronos-bridged-usdt-cronos",
+  "symbol": "usdt",
+  "name": "Cronos Bridged USDT (Cronos)"
+ },
+ {
+  "id": "cronos-zkevm-bridged-usdc-cronos-zkevm",
+  "symbol": "usdc",
+  "name": "Cronos zkEVM Bridged USDC (Cronos zkEVM)"
+ },
+ {
+  "id": "eclipse-bridged-usdc-eclipse",
+  "symbol": "usdc",
+  "name": "Eclipse Bridged USDC (Eclipse)"
+ },
+ {
+  "id": "edu-chain-bridged-usdc-edu-chain",
+  "symbol": "usdc",
+  "name": "Arbitrum Bridged USDC (EDU Chain)"
+ },
+ {
+  "id": "energi-bridged-usdc-energi",
+  "symbol": "usdc",
+  "name": "Energi Bridged USDC (Energi)"
+ },
+ {
+  "id": "eni-bridged-usdt-eni",
+  "symbol": "usdt",
+  "name": "ENI Bridged USDT (ENI)"
+ },
+ {
+  "id": "ethereum",
+  "symbol": "eth",
+  "name": "Ethereum"
+ },
+ {
+  "id": "ethereum-wormhole",
+  "symbol": "eth",
+  "name": "Ethereum (Wormhole)"
+ },
+ {
+  "id": "fraxtal-bridged-usdc-fraxtal",
+  "symbol": "usdc",
+  "name": "Fraxtal Bridged USDC (Fraxtal)"
+ },
+ {
+  "id": "gnosis-xdai-bridged-usdc-gnosis",
+  "symbol": "usdc",
+  "name": "Gnosis xDAI Bridged USDC (Gnosis)"
+ },
+ {
+  "id": "gnosis-xdai-bridged-usdt-gnosis",
+  "symbol": "usdt",
+  "name": "xDai Bridged USDT (Gnosis)"
+ },
+ {
+  "id": "hieswap-bridged-usdt-fonchain",
+  "symbol": "usdt",
+  "name": "HieSwap Bridged USDT (FONChain)"
+ },
+ {
+  "id": "hyperlane-bridged-usdc-igra",
+  "symbol": "usdc",
+  "name": "Hyperlane Bridged USDC (Igra)"
+ },
+ {
+  "id": "hyperlane-bridged-usdc-lukso",
+  "symbol": "usdc",
+  "name": "Hyperlane Bridged USDC (LUKSO)"
+ },
+ {
+  "id": "hyperlane-bridged-usdc-mantra-evm",
+  "symbol": "usdc",
+  "name": "Hyperlane Bridged USDC (Mantra EVM)"
+ },
+ {
+  "id": "ima-bridged-usdc-skale",
+  "symbol": "usdc",
+  "name": "Skale IMA Bridged USDC (Skale)"
+ },
+ {
+  "id": "immutable-zkevm-bridged-eth",
+  "symbol": "eth",
+  "name": "Immutable zkEVM Bridged ETH"
+ },
+ {
+  "id": "initia-bridged-usdc-initia",
+  "symbol": "usdc",
+  "name": "Initia Bridged USDC (Initia)"
+ },
+ {
+  "id": "injective-bridged-usdt-injective",
+  "symbol": "usdt",
+  "name": "Injective Bridged USDT (Injective)"
+ },
+ {
+  "id": "kaia-bridged-usdt-kaia",
+  "symbol": "usdt",
+  "name": "Wormhole Bridged USDT (Kaia)"
+ },
+ {
+  "id": "krown-bridged-eth-krown",
+  "symbol": "eth",
+  "name": "Krown Bridged ETH (Krown)"
+ },
+ {
+  "id": "krown-bridged-usdt-krown",
+  "symbol": "usdt",
+  "name": "Krown Bridged USDT (Krown)"
+ },
+ {
+  "id": "kub-bridged-usdt-kub",
+  "symbol": "usdt",
+  "name": "KUB Bridged USDT (KUB)"
+ },
+ {
+  "id": "kucoin-bridged-usdc-kucoin-community-chain",
+  "symbol": "usdc",
+  "name": "KCC Bridged USDC (KuCoin Community Chain)"
+ },
+ {
+  "id": "kucoin-bridged-usdt-kucoin-community-chain",
+  "symbol": "usdt",
+  "name": "KCC Bridged USDT (Kucoin Community Chain)"
+ },
+ {
+  "id": "l2-standard-bridged-usdt-base",
+  "symbol": "usdt",
+  "name": "L2 Standard Bridged USDT (Base)"
+ },
+ {
+  "id": "layerzero-bridged-usdc-aptos",
+  "symbol": "usdc",
+  "name": "LayerZero Bridged USDC (Aptos)"
+ },
+ {
+  "id": "layerzero-bridged-usdc-etherlink",
+  "symbol": "usdc",
+  "name": "Etherlink Bridged USDC (Etherlink)"
+ },
+ {
+  "id": "lens-bridged-usdc-lens",
+  "symbol": "usdc",
+  "name": "Lens Bridged USDC (Lens)"
+ },
+ {
+  "id": "lisk-bridged-usdt",
+  "symbol": "usdt",
+  "name": "Lisk Bridged USDT (Lisk)"
+ },
+ {
+  "id": "mantle-bridged-usdc-mantle",
+  "symbol": "usdc",
+  "name": "Mantle Bridged USDC (Mantle)"
+ },
+ {
+  "id": "mezo-wrapped-btc",
+  "symbol": "btc",
+  "name": "Mezo Wrapped BTC"
+ },
+ {
+  "id": "mode-bridged-usdc-mode",
+  "symbol": "usdc",
+  "name": "Mode Bridged USDC (Mode)"
+ },
+ {
+  "id": "mode-bridged-usdt-mode",
+  "symbol": "usdt",
+  "name": "Mode Bridged USDT (Mode)"
+ },
+ {
+  "id": "morph-l2-bridged-usdc-morph-l2",
+  "symbol": "usdc",
+  "name": "Morph L2 Bridged USDC (Morph L2)"
+ },
+ {
+  "id": "morph-l2-bridged-usdt-morph-l2",
+  "symbol": "usdt",
+  "name": "Morph L2 Bridged USDT (Morph L2)"
+ },
+ {
+  "id": "multichain-bridged-usdc-dogechain",
+  "symbol": "usdc",
+  "name": "Multichain Bridged USDC (Dogechain)"
+ },
+ {
+  "id": "multichain-bridged-usdc-fantom",
+  "symbol": "usdc",
+  "name": "Multichain Bridged USDC (Fantom)"
+ },
+ {
+  "id": "near-intents-bridged-btc",
+  "symbol": "btc",
+  "name": "NEAR Intents Bridged BTC"
+ },
+ {
+  "id": "near-intents-bridged-eth",
+  "symbol": "eth",
+  "name": "NEAR Intents Bridged ETH"
+ },
+ {
+  "id": "near-intents-bridged-usdc",
+  "symbol": "usdc",
+  "name": "NEAR Intents Bridged USDC"
+ },
+ {
+  "id": "near-intents-bridged-usdt",
+  "symbol": "usdt",
+  "name": "NEAR Intents Bridged USDT"
+ },
+ {
+  "id": "neonpass-bridged-usdc-neon",
+  "symbol": "usdc",
+  "name": "NeonPass Bridged USDC (Neon)"
+ },
+ {
+  "id": "nomad-bridged-usdc-moonbeam",
+  "symbol": "usdc",
+  "name": "Nomad Bridged USDC (Moonbeam)"
+ },
+ {
+  "id": "nova-eth",
+  "symbol": "eth",
+  "name": "Nova Merged ETH (zkLink)"
+ },
+ {
+  "id": "nova-tether-usd",
+  "symbol": "usdt",
+  "name": "Nova Merged USDT (zkLink)"
+ },
+ {
+  "id": "nova-usdc",
+  "symbol": "usdc",
+  "name": "zkLink Nova Merged Bridged USDC (zkLink Nova)"
+ },
+ {
+  "id": "official-arbitrum-bridged-usdc-arbitrum-nova",
+  "symbol": "usdc",
+  "name": "Arbitrum Bridged USDC (Arbitrum Nova)"
+ },
+ {
+  "id": "osmosis-allbtc",
+  "symbol": "btc",
+  "name": "Osmosis allBTC"
+ },
+ {
+  "id": "osmosis-alleth",
+  "symbol": "eth",
+  "name": "Osmosis allETH"
+ },
+ {
+  "id": "osmosis-allusdt",
+  "symbol": "usdt",
+  "name": "Osmosis allUSDT"
+ },
+ {
+  "id": "polygon-hermez-bridged-usdc-polygon-zkevm",
+  "symbol": "usdc",
+  "name": "Polygon Hermez Bridged USDC (Polygon zkEVM)"
+ },
+ {
+  "id": "polygon-hermez-bridged-usdc-x-layer",
+  "symbol": "usdc",
+  "name": "Polygon Hermez Bridged USDC (X Layer)"
+ },
+ {
+  "id": "polygon-hermez-bridged-usdt-polygon-zkevm",
+  "symbol": "usdt",
+  "name": "Polygon Hermez Bridged USDT (Polygon zkEVM)"
+ },
+ {
+  "id": "polygon-hermez-bridged-usdt-x-layer",
+  "symbol": "usdt",
+  "name": "Polygon Hermez Bridged USDT (x Layer)"
+ },
+ {
+  "id": "q-bridged-usdc-q-mainnet",
+  "symbol": "usdc",
+  "name": "Q Bridged USDC (Q Mainnet)"
+ },
+ {
+  "id": "rainbow-bridged-usdc-aurora",
+  "symbol": "usdc",
+  "name": "Rainbow Bridged USDC (Aurora)"
+ },
+ {
+  "id": "redbelly-bridged-usdt-redbelly",
+  "symbol": "usdt",
+  "name": "Lucid Bridged USDT (Redbelly)"
+ },
+ {
+  "id": "shido-bridged-usdc",
+  "symbol": "usdc",
+  "name": "Shido Bridged USDC (Shido)"
+ },
+ {
+  "id": "shimmerbridge-bridged-usdt-shimmerevm",
+  "symbol": "usdt",
+  "name": "ShimmerBridge Bridged USDT (ShimmerEVM)"
+ },
+ {
+  "id": "soneium-bridged-usdt-soneium",
+  "symbol": "usdt",
+  "name": "Soneium Bridged USDT (Soneium)"
+ },
+ {
+  "id": "sonic-bridged-usdt-sonic",
+  "symbol": "usdt",
+  "name": "Sonic Gateway Bridged USDT (Sonic)"
+ },
+ {
+  "id": "sophon-bridged-usdc-sophon",
+  "symbol": "usdc",
+  "name": "Sophon Bridged USDC (Sophon)"
+ },
+ {
+  "id": "sophon-bridged-usdt-sophon",
+  "symbol": "usdt",
+  "name": "Sophon Bridged USDT (Sophon)"
+ },
+ {
+  "id": "stargate-bridged-usdt",
+  "symbol": "usdt",
+  "name": "Stargate Bridged USDT"
+ },
+ {
+  "id": "superseed-bridged-usdc-superseed",
+  "symbol": "usdc",
+  "name": "Superseed Bridged USDC (Superseed)"
+ },
+ {
+  "id": "synapse-bridged-usdc-elastos",
+  "symbol": "usdc",
+  "name": "Synapse Bridged USDC (Elastos)"
+ },
+ {
+  "id": "tac-bridged-usdt-tac",
+  "symbol": "usdt",
+  "name": "TAC Bridged USDT (TAC)"
+ },
+ {
+  "id": "taiko-bridged-usdc-taiko",
+  "symbol": "usdc",
+  "name": "Taiko Bridged USDC (Taiko)"
+ },
+ {
+  "id": "tether",
+  "symbol": "usdt",
+  "name": "Tether"
+ },
+ {
+  "id": "tether-pulsechain",
+  "symbol": "usdt",
+  "name": "Pulsechain Bridged USDT (Pulsechain)"
+ },
+ {
+  "id": "tether-usd-wormhole-from-ethereum",
+  "symbol": "usdt",
+  "name": "Wormhole Bridged USDT"
+ },
+ {
+  "id": "the-infinite-garden",
+  "symbol": "eth",
+  "name": "The Infinite Garden"
+ },
+ {
+  "id": "the-ticker-is-eth",
+  "symbol": "eth",
+  "name": "The Ticker Is ETH"
+ },
+ {
+  "id": "thundercore-bridged-usdc-thundercore",
+  "symbol": "usdc",
+  "name": "Thundercore Bridged USDC (Thundercore)"
+ },
+ {
+  "id": "thundercore-bridged-usdt-thundercore",
+  "symbol": "usdt",
+  "name": "Thundercore Bridged USDT (Thundercore)"
+ },
+ {
+  "id": "unichain-bridged-usdt-unichain",
+  "symbol": "usdt",
+  "name": "Unichain Bridged USDT (Unichain)"
+ },
+ {
+  "id": "units-network-bridged-usdt-units-network",
+  "symbol": "usdt",
+  "name": "Unit Zero Network Bridged USDT (Unit Zero Network)"
+ },
+ {
+  "id": "upside-down-cat",
+  "symbol": "usdc",
+  "name": "UpSide Down Cat"
+ },
+ {
+  "id": "usd-coin",
+  "symbol": "usdc",
+  "name": "USDC"
+ },
+ {
+  "id": "usd-coin-pulsechain",
+  "symbol": "usdc",
+  "name": "Bridged USD Coin (PulseChain)"
+ },
+ {
+  "id": "viction-bridged-usdt",
+  "symbol": "usdt",
+  "name": "Arken Bridged USDT (Viction)"
+ },
+ {
+  "id": "wanchain-bridged-usdc-cardano",
+  "symbol": "usdc",
+  "name": "Wanchain Bridged USDC (Cardano)"
+ },
+ {
+  "id": "wormhole-bridged-usdc-fantom",
+  "symbol": "usdc",
+  "name": "Wormhole Bridged USDC (Fantom)"
+ },
+ {
+  "id": "zero-network-bridged-usdc-zero-network",
+  "symbol": "usdc",
+  "name": "Zero Network Bridged USDC (Zero Network)"
+ },
+ {
+  "id": "zksync-bridged-usdc-zksync",
+  "symbol": "usdc",
+  "name": "zkSync Bridged USDC (zkSync)"
+ }
+]

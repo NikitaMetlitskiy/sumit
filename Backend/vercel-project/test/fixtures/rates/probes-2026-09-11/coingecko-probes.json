@@ -1,0 +1,39 @@
+[
+  {
+    "name": "coingecko-keyless-coins-list",
+    "url": "https://api.coingecko.com/api/v3/coins/list",
+    "requested_at": "2026-09-11T18:30:37.505667+00:00",
+    "authentication": "none (keyless public API). No Demo key exists for this project; this is NOT an authorized-account qualification.",
+    "environment": "developer machine (macOS), NOT the intended Vercel server environment",
+    "status": 200,
+    "headers": {
+      "Date": "Fri, 11 Sep 2026 18:30:37 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Age": "1278",
+      "Cache-Control": "max-age=30, public, must-revalidate, s-maxage=1800",
+      "Server": "cloudflare"
+    },
+    "elapsed_seconds": 0.294,
+    "body_bytes": 1366796,
+    "body_file": "coingecko-keyless-coins-list.filtered.json",
+    "registry_rows_total": 21084,
+    "registry_rows_kept": 135
+  },
+  {
+    "name": "coingecko-keyless-simple-price",
+    "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,usd-coin,tether&vs_currencies=usd&include_last_updated_at=true",
+    "requested_at": "2026-09-11T18:30:37.820378+00:00",
+    "authentication": "none (keyless public API). No Demo key exists for this project; this is NOT an authorized-account qualification.",
+    "environment": "developer machine (macOS), NOT the intended Vercel server environment",
+    "status": 200,
+    "headers": {
+      "Date": "Fri, 11 Sep 2026 18:30:38 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "max-age=30, public, must-revalidate, s-maxage=60",
+      "Server": "cloudflare"
+    },
+    "elapsed_seconds": 0.272,
+    "body_bytes": 222,
+    "body_file": "coingecko-keyless-simple-price.body.txt"
+  }
+]

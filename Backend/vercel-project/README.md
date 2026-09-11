@@ -67,12 +67,59 @@ curl -X POST https://sumit-backend-ten.vercel.app/api/parse \
   -H "Content-Type: application/json" \
   -d '{"text":"500 UAH taxi"}'
 
-# 3. Parse with auth → 200
+# 3. Parse with auth → 200 (contract v1: legacy numeric `amount`)
 curl -X POST https://sumit-backend-ten.vercel.app/api/parse \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <supabase_jwt>" \
   -d '{"text":"500 UAH taxi"}'
+
+# 4. Parse with contract v2 → 200 with exact `amount_decimal`
+curl -X POST https://sumit-backend-ten.vercel.app/api/parse \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <supabase_jwt>" \
+  -d '{"text":"вчора 12,50 EUR кава","contract_version":2,
+       "local_date":"2026-05-19","timezone":"Europe/Kyiv","locale":"uk"}'
 ```
+
+## Parse contract
+
+A request without `contract_version` is **v1** and gets exactly the response it
+always got. A request with `"contract_version": 2` must also send `local_date`
+(`YYYY-MM-DD`), `timezone` (IANA) and `locale` (BCP-47), and may send
+`segment_index` (0…19), which is echoed back. Bad context is a `400` before any
+model call or quota check.
+
+A v2 response carries `amount_decimal` — the exact amount as a string of digits
+— plus a derived numeric `amount` for older readers. Both routes validate the
+model's answer through `api/_lib/transaction-contract.js`
+(`validateParsedTransactionV2`). An answer that breaks the contract (a numeric
+amount, an unknown type, too many decimal places for the currency, an
+impossible date) is a `422` with `{ "error": "invalid_model_output", "reason": <code> }`
+and is not counted against the user's quota. Nothing is repaired or rounded.
+
+## Exchange rates
+
+`GET /api/rates?currencies=EUR,BTC&date=YYYY-MM-DD` (authenticated; `date` optional)
+returns `{ quotes, unavailable }`. Each requested code appears in exactly one of the two.
+
+- A rate is **USD per one unit** of the currency. USD is `identity` and never calls a provider.
+- Fiat comes from Frankfurter v2 (no key), always requested with an explicit date — the undated
+  aggregate has been observed labelled a day ahead. Crypto comes from CoinGecko and needs
+  `COINGECKO_DEMO_API_KEY`; without it, crypto is `unavailable` with reason `provider_access`.
+- A provider quote is returned only after it has been stored in `rate_quotes`, with that row's
+  `quote_id`. The ledger write RPC verifies quotes against those rows.
+- Nothing falls back to 1, to 0, or to today's price for a historical day.
+- Attribution: the app shows "Powered by CoinGecko" (required by CoinGecko's API terms) and links
+  Frankfurter. See `docs/reports/ledger-execution-task-16-2026-09-11.md` for the terms review.
+
+## Tests
+
+```bash
+npm test
+```
+
+Uses Node's built-in test runner and module mocks — no install, no network, no
+OpenAI or Supabase calls. Requires Node 22+.
 
 ## Security notes
 

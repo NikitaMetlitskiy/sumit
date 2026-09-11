@@ -31,3 +31,9 @@ Backend/vercel-project/.vercel/
 
 # Logs
 *.log
+
+# Vercel link at the repository root
+.vercel/
+.env.local
+.vercel
+.env*

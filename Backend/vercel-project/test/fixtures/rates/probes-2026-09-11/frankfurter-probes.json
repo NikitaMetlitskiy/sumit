@@ -1,0 +1,73 @@
+[
+  {
+    "name": "frankfurter-v2-latest",
+    "url": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=EUR,UAH,GBP,PLN,CZK,CAD,CHF,RUB,KZT,JPY&expand=providers",
+    "requested_at": "2026-09-11T18:30:20.763532+00:00",
+    "environment": "developer machine (macOS), NOT the intended Vercel server environment",
+    "status": 200,
+    "headers": {
+      "Date": "Fri, 11 Sep 2026 18:30:28 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "cache-control": "public, max-age=19772, stale-if-error=86400",
+      "cf-cache-status": "MISS",
+      "Server": "cloudflare"
+    },
+    "elapsed_seconds": 8.196,
+    "body_file": "frankfurter-v2-latest.body.txt",
+    "body_bytes": 27009
+  },
+  {
+    "name": "frankfurter-v2-historical-2026-05-19",
+    "url": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=EUR,UAH,GBP,PLN,CZK,CAD,CHF,RUB,KZT,JPY&date=2026-05-19&expand=providers",
+    "requested_at": "2026-09-11T18:30:28.959991+00:00",
+    "environment": "developer machine (macOS), NOT the intended Vercel server environment",
+    "status": 200,
+    "headers": {
+      "Date": "Fri, 11 Sep 2026 18:30:33 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "cache-control": "public, max-age=86400, stale-while-revalidate=86400, stale-if-error=86400",
+      "cf-cache-status": "MISS",
+      "Server": "cloudflare"
+    },
+    "elapsed_seconds": 4.625,
+    "body_file": "frankfurter-v2-historical-2026-05-19.body.txt",
+    "body_bytes": 26558
+  },
+  {
+    "name": "frankfurter-v2-currencies",
+    "url": "https://api.frankfurter.dev/v2/currencies",
+    "requested_at": "2026-09-11T18:30:33.585158+00:00",
+    "environment": "developer machine (macOS), NOT the intended Vercel server environment",
+    "status": 200,
+    "headers": {
+      "Date": "Fri, 11 Sep 2026 18:30:35 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "cache-control": "public, max-age=86400, stale-while-revalidate=86400, stale-if-error=86400",
+      "cf-cache-status": "MISS",
+      "Server": "cloudflare"
+    },
+    "elapsed_seconds": 1.76,
+    "body_file": "frankfurter-v2-currencies.body.txt",
+    "body_bytes": 21274
+  },
+  {
+    "name": "frankfurter-v2-dated-today-utc",
+    "url": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=EUR,UAH,GBP,PLN,CZK,CAD,CHF,RUB,KZT,JPY&date=2026-09-11&expand=providers",
+    "requested_at": "2026-09-11T18:32:12.706519+00:00",
+    "environment": "developer machine (macOS), NOT the intended Vercel server environment",
+    "status": 200,
+    "elapsed_seconds": 0.596,
+    "body_file": "frankfurter-v2-dated-today-utc.body.txt",
+    "body_bytes": 27103
+  },
+  {
+    "name": "frankfurter-v2-providers",
+    "url": "https://api.frankfurter.dev/v2/providers",
+    "requested_at": "2026-09-11T18:32:13.304003+00:00",
+    "environment": "developer machine (macOS), NOT the intended Vercel server environment",
+    "status": 200,
+    "elapsed_seconds": 0.399,
+    "body_file": "frankfurter-v2-providers.body.txt",
+    "body_bytes": 56056
+  }
+]
