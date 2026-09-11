@@ -49,10 +49,16 @@ struct LockScreenView: View {
                         .foregroundColor(.red)
                         .padding(.bottom, 40)
                 } else {
-                    Text(wrongAttempts > 0 ? L("wrong_code") : L("enter_code"))
+                    // What this screen says has to match what it can actually
+                    // check. Asking for a code that cannot be verified is how
+                    // it turned into a dead end.
+                    Text(statusMessage)
                         .font(.caption)
-                        .foregroundColor(wrongAttempts > 0 ? .red : .white.opacity(0.6))
+                        .foregroundColor(statusIsProblem ? .red : .white.opacity(0.6))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
                         .padding(.bottom, 40)
+                        .accessibilityIdentifier("lock-status")
                 }
 
                 let rows: [[String]] = [
@@ -66,8 +72,8 @@ struct LockScreenView: View {
                         HStack(spacing: 24) {
                             ForEach(row, id: \.self) { key in
                                 PINButton(key: key) { handleKey(key) }
-                                    .disabled(appLock.isLockedOut && key != "FaceID")
-                                    .opacity((appLock.isLockedOut && key != "FaceID") ? 0.3 : 1)
+                                    .disabled(keyIsDisabled(key))
+                                    .opacity(keyIsDisabled(key) ? 0.3 : 1)
                             }
                         }
                     }
@@ -79,6 +85,26 @@ struct LockScreenView: View {
         .onAppear(perform: startLockoutTickerIfNeeded)
         .onDisappear { lockoutTimer?.invalidate() }
         .onChange(of: appLock.lockoutUntil) { startLockoutTickerIfNeeded() }
+    }
+
+    /// Digits are pointless when there is no PIN to check them against.
+    private func keyIsDisabled(_ key: String) -> Bool {
+        guard key != "FaceID" else { return false }
+        return appLock.isLockedOut || !appLock.canUsePIN
+    }
+
+    private var statusMessage: String {
+        if appLock.needsBiometricReattestation { return L("lock_biometric_changed") }
+        if !appLock.canUsePIN {
+            return appLock.biometricUnavailable ? L("lock_biometric_unavailable") : L("lock_no_pin")
+        }
+        if wrongAttempts > 0 { return L("wrong_code") }
+        return L("enter_code")
+    }
+
+    private var statusIsProblem: Bool {
+        wrongAttempts > 0 || appLock.needsBiometricReattestation
+            || appLock.biometricUnavailable || !appLock.canUsePIN
     }
 
     private var lockoutLabel: String {

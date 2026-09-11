@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F3B0021E0000000000000000 /* app-lock-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0011E0000000000000000 /* app-lock-tests.swift */; };
 		F3B0021D0000000000000000 /* report-valuation-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0011D0000000000000000 /* report-valuation-tests.swift */; };
 		F3B0021C0000000000000000 /* valuation-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0011C0000000000000000 /* valuation-tests.swift */; };
 		F3B0021B0000000000000000 /* report-valuation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0011B0000000000000000 /* report-valuation.swift */; };
@@ -104,6 +105,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F3B0011E0000000000000000 /* app-lock-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "app-lock-tests.swift"; sourceTree = "<group>"; };
 		F3B0011D0000000000000000 /* report-valuation-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "report-valuation-tests.swift"; sourceTree = "<group>"; };
 		F3B0011C0000000000000000 /* valuation-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "valuation-tests.swift"; sourceTree = "<group>"; };
 		F3B0011B0000000000000000 /* report-valuation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "report-valuation.swift"; sourceTree = "<group>"; };
@@ -224,6 +226,7 @@
 			isa = PBXGroup;
 			children = (
 				F3B001010000000000000000 /* money-value-tests.swift */,
+				F3B0011E0000000000000000 /* app-lock-tests.swift */,
 				F3B0011D0000000000000000 /* report-valuation-tests.swift */,
 				F3B0011C0000000000000000 /* valuation-tests.swift */,
 				F3B001190000000000000000 /* parse-contract-tests.swift */,
@@ -535,6 +538,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3B002010000000000000000 /* money-value-tests.swift in Sources */,
+				F3B0021E0000000000000000 /* app-lock-tests.swift in Sources */,
 				F3B0021D0000000000000000 /* report-valuation-tests.swift in Sources */,
 				F3B0021C0000000000000000 /* valuation-tests.swift in Sources */,
 				F3B002190000000000000000 /* parse-contract-tests.swift in Sources */,

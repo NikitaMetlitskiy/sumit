@@ -108,6 +108,20 @@ final class AppLockManager: ObservableObject {
     /// PIN is stored as a salted hash in Keychain. The raw PIN never lives in memory beyond verification.
     @Published private(set) var pinIsSet: Bool = false
 
+    /// Biometrics cannot be evaluated on this device right now (not enrolled,
+    /// no hardware, or locked out by the system).
+    @Published private(set) var biometricUnavailable = false
+    /// The biometric enrollment changed since this app trusted it, so a
+    /// successful scan is not accepted on its own any more.
+    @Published private(set) var needsBiometricReattestation = false
+
+    /// Whether a PIN can actually be checked. `pinEnabled` alone is not enough:
+    /// the flag can be on with no stored hash, and then every entry is wrong.
+    var canUsePIN: Bool { pinEnabled && pinIsSet }
+
+    /// Whether anything at all can unlock the app.
+    private var canVerify: Bool { canUsePIN || biometricEnabled }
+
     private var backgroundedAt: Date?
     private var launchLockDone = false
     private var biometricInProgress = false
@@ -130,25 +144,38 @@ final class AppLockManager: ObservableObject {
         }
         // Migrate legacy plaintext PIN from UserDefaults if present.
         migrateLegacyPIN()
+        healUnverifiableLock()
+    }
+
+    /// A PIN switched on with no stored hash locks the app with a lock that has
+    /// no key: `unlockWithPIN` refuses every entry because there is nothing to
+    /// compare against, and the lock screen covers the whole app — including
+    /// sign-in. That state was reachable through `migrateLegacyPIN`, which
+    /// turned the flag on from a UserDefaults value without writing a hash.
+    /// The flag is switched off rather than left guarding nothing.
+    private func healUnverifiableLock() {
+        guard pinEnabled, !pinIsSet else { return }
+        pinEnabled = false
+        Log.warn("PIN was enabled without a stored hash; disabled it")
     }
 
     func lockOnLaunch() {
         guard !launchLockDone else { return }
         launchLockDone = true
-        guard pinEnabled || biometricEnabled else { return }
+        guard canVerify else { return }
         isLocked = true
         if biometricEnabled { runBiometric() }
     }
 
     func handleBackground() {
-        guard pinEnabled || biometricEnabled else { return }
+        guard canVerify else { return }
         backgroundedAt = Date()
         isLocked = true
     }
 
     func handleReturnFromBackground() {
         guard launchLockDone else { return }
-        guard pinEnabled || biometricEnabled else { return }
+        guard canVerify else { return }
         guard let bg = backgroundedAt else { return }
 
         if lockDelay > 0 && Date().timeIntervalSince(bg) < lockDelay {
@@ -171,9 +198,13 @@ final class AppLockManager: ObservableObject {
 
         guard ctx.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &authError) else {
             biometricInProgress = false
-            if !pinEnabled { isLocked = false }
+            biometricUnavailable = true
+            // Nothing else can verify the owner, so keeping the app shut would
+            // lock them out of their own data instead of protecting it.
+            if !canUsePIN { unlock() }
             return
         }
+        biometricUnavailable = false
 
         ctx.evaluatePolicy(
             .deviceOwnerAuthenticationWithBiometrics,
@@ -187,16 +218,29 @@ final class AppLockManager: ObservableObject {
                     if let stored = KeychainHelper.get("bio_domain_state"),
                        let current = ctx.evaluatedPolicyDomainState,
                        stored != current {
-                        // Biometric enrollment changed — force PIN and re-attestation
+                        // The enrollment changed, so this scan proves less than
+                        // it seems. Previously this returned silently: the scan
+                        // succeeded, the screen said nothing, and the app stayed
+                        // shut. Now it says so, and falls back to the PIN — or
+                        // opens if there is no PIN to fall back to.
+                        self.needsBiometricReattestation = true
+                        if !self.canUsePIN { self.unlock() }
                         return
                     }
                     if let domainState = ctx.evaluatedPolicyDomainState {
                         KeychainHelper.set(domainState, for: "bio_domain_state")
                     }
-                    self.isLocked = false
+                    self.unlock()
                 }
             }
         }
+    }
+
+    /// Opens the app and clears the lock-screen explanations.
+    private func unlock() {
+        isLocked = false
+        needsBiometricReattestation = false
+        biometricUnavailable = false
     }
 
     // MARK: — PIN
@@ -239,7 +283,7 @@ final class AppLockManager: ObservableObject {
             return false
         }
         clearFailedAttempts()
-        isLocked = false
+        unlock()
         return true
     }
 
