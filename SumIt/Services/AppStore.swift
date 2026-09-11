@@ -11,22 +11,78 @@ final class AppStore: ObservableObject {
 
     var modelContext: ModelContext?
 
+    /// Why the last local write failed, as a stable machine code. `nil` means
+    /// the last write succeeded. Callers use it to say what actually went wrong
+    /// instead of guessing.
+    @Published private(set) var lastWriteErrorCode: String?
+
+    /// The checked, atomic write path. Views are migrated onto it in Task 14;
+    /// until then `saveConfirmed` above remains the live path and this is the
+    /// entry point new code should use.
+    private(set) var ledger: LedgerStore?
+
+    /// Dispatches the durable queue. It is deliberately **not** triggered yet:
+    /// the live save path still writes through `saveConfirmed`, so no
+    /// `PendingMutation` is ever created in production and there is nothing to
+    /// send. Task 14 migrates the callers, and triggering starts there.
+    private(set) var syncCoordinator: LedgerSyncCoordinator?
+
+    /// Dated quotes for editors, the confirmation card and report display.
+    /// It never writes a transaction.
+    private(set) var rateService: RateService?
+
     func setup(context: ModelContext) {
         self.modelContext = context
+        self.ledger = LedgerStore(context: context)
+        self.syncCoordinator = LedgerSyncCoordinator(context: context)
+        self.rateService = RateService(container: context.container, fetch: { currencies, date in
+            try await BackendService.shared.getRates(currencies: currencies, date: date)
+        })
         seedCategoriesIfNeeded()
         loadCategories()
         loadSettings()
         Log.info("AppStore setup complete. Categories: \(self.allCategories.count)")
 
-        Task {
+        Task { [weak self] in
             _ = await AuthService.shared.refreshSessionIfNeeded()
-            await syncPendingTransactions()
-            await syncPendingWallets()
-            if AuthService.shared.isSignedIn {
-                await restoreFromCloud()
-            }
+            guard AuthService.shared.isSignedIn else { return }
+            let scope = AuthService.shared.currentScope
+            // Pull first so local work is queued against what the server
+            // actually holds, then push. Both are idempotent by identity, so a
+            // relaunch in the middle of either repeats rather than duplicates.
+            await self?.syncCoordinator?.pull(scope: scope)
+            await self?.restoreLegacyRowsFromCloud()
+            self?.syncCoordinator?.trigger(scope: scope)
         }
     }
+
+    /// Records that device-only rows exist and are waiting for an explicit
+    /// import, instead of silently attaching them to the account that just
+    /// signed in. One open issue per account, never a pile of duplicates.
+    func recordLocalDataAwaitingImport(ownerID: String) {
+        guard let ctx = modelContext, ownerID != AccountScope.localOwnerID else { return }
+
+        let localOwner = AccountScope.localOwnerID
+        let localTransactions = (try? ctx.fetchCount(FetchDescriptor<Transaction>(
+            predicate: #Predicate { $0.userId == localOwner }))) ?? 0
+        let localWallets = (try? ctx.fetchCount(FetchDescriptor<Wallet>(
+            predicate: #Predicate { $0.userId == localOwner }))) ?? 0
+        guard localTransactions + localWallets > 0 else { return }
+
+        let reason = "local_data_awaiting_import"
+        let existing = (try? ctx.fetch(FetchDescriptor<SyncIssue>(
+            predicate: #Predicate { $0.ownerID == ownerID && $0.reason == reason && $0.resolvedAt == nil }))) ?? []
+        guard existing.isEmpty else { return }
+
+        // An account-level issue rather than one about a single row.
+        ctx.insert(SyncIssue(ownerID: ownerID, entityKind: .transaction,
+                             entityID: AppStore.accountLevelIssueID,
+                             kind: .legacyAmbiguity, reason: reason))
+        try? ctx.save()
+    }
+
+    /// Sentinel identity for issues that concern the account rather than one entity.
+    static let accountLevelIssueID = UUID(uuidString: "00000000-0000-4000-8000-000000000000")!
 
     // MARK: — Settings
     func loadSettings() {
@@ -79,215 +135,329 @@ final class AppStore: ObservableObject {
         try? ctx.save()
     }
 
-    // MARK: — Save confirmed transaction (atomic; wallet balance + sync)
+    // MARK: — Save confirmed transaction
+
+    /// The live save path. Everything it used to do by hand — insert, adjust a
+    /// stored wallet balance, save, then upload and hope — is now one checked
+    /// atomic command plus a durable queue entry.
+    ///
+    /// Returns the saved transaction, or `nil` with `lastWriteErrorCode` set.
+    /// It never returns a transaction that was not committed.
+    @discardableResult
     func saveConfirmed(parsed: ParsedTransaction, linkedMessageID: UUID? = nil) async -> Transaction? {
-        guard let ctx = modelContext else { return nil }
-        guard CurrencyService.isSupported(parsed.currency) else {
-            Log.warn("Unsupported currency: \(parsed.currency)")
+        lastWriteErrorCode = nil
+        guard let ctx = modelContext, let ledger else {
+            lastWriteErrorCode = "storage_unavailable"
             return nil
         }
-        let rate = CurrencyService.toUSD(parsed.currency)
-        let tx = Transaction(
-            userId: AuthService.shared.userId,
-            type: parsed.type,
-            originalAmount: parsed.amount,
-            originalCurrency: parsed.currency,
-            amountInBase: parsed.amount * rate,
-            baseCurrency: "USD",
-            rateAtTime: rate,
-            categoryName: matchCategoryKey(parsed.categoryName),
-            merchant: parsed.merchant,
-            note: parsed.note,
-            occurredAt: parsed.occurredAt,
-            source: parsed.source,
-            confidence: parsed.confidence,
-            rawInput: parsed.rawInput,
-            walletName: parsed.walletName,
-            linkedMessageID: linkedMessageID,
-            isSynced: false
-        )
+        let scope = AuthService.shared.currentScope
 
-        ctx.insert(tx)
-        applyWalletDelta(for: tx, sign: +1)
-        do { try ctx.save() } catch { Log.error("Tx save failed"); return tx }
+        let draft: TransactionDraft
+        do {
+            draft = try ParsedTransactionDraft.make(
+                from: parsed, id: parsed.id,
+                categoryName: matchCategoryKey(parsed.categoryName),
+                wallets: (try? ctx.fetch(FetchDescriptor<Wallet>())) ?? [],
+                ownerID: scope.ownerID)
+        } catch let error as ParsedTransactionDraft.BuildError {
+            lastWriteErrorCode = error.code
+            return nil
+        } catch {
+            lastWriteErrorCode = "invalid_amount"
+            return nil
+        }
 
-        // Fire-and-forget Supabase upload using a Sendable snapshot.
-        let snap = tx.snapshot()
-        let id = tx.id
-        Task { [weak self] in
-            do {
-                try await SupabaseService.shared.saveTransaction(snap)
-                await self?.markSynced(id: id)
-            } catch {
-                Log.warn("Supabase tx sync deferred")
+        do {
+            try ledger.saveTransaction(draft, scope: scope, linkedMessageID: linkedMessageID)
+        } catch let error as LedgerWriteError {
+            // A second tap on the same confirmation card is not a second
+            // transaction: the identity already exists, so the first save is
+            // the answer.
+            if case .duplicateEntity(let id) = error {
+                return try? transaction(id: id, ownerID: scope.ownerID)
             }
+            lastWriteErrorCode = error.code
+            return nil
+        } catch {
+            lastWriteErrorCode = "save_failed"
+            return nil
         }
-        return tx
+
+        dispatchQueuedWork()
+        return try? transaction(id: draft.id, ownerID: scope.ownerID)
     }
 
-    /// Wallet balance update — converts amount into wallet currency before applying.
-    /// `sign` is +1 on save/income contribution, -1 on save/expense or on delete.
-    private func applyWalletDelta(for tx: Transaction, sign: Double) {
-        guard !tx.walletName.isEmpty, let ctx = modelContext else { return }
-        let desc = FetchDescriptor<Wallet>()
-        guard let wallets = try? ctx.fetch(desc),
-              let wallet = wallets.first(where: { $0.name.lowercased() == tx.walletName.lowercased() }) else { return }
-        let txEffect: Double = tx.type == .income ? +tx.originalAmount : -tx.originalAmount
-        let inWalletCurrency = CurrencyService.convert(txEffect, from: tx.originalCurrency, to: wallet.currency)
-        wallet.balance += inWalletCurrency * sign
-        wallet.isSynced = false
-    }
-
-    private func markSynced(id: UUID) async {
-        guard let ctx = modelContext else { return }
-        let desc = FetchDescriptor<Transaction>(predicate: #Predicate { $0.id == id })
-        if let tx = try? ctx.fetch(desc).first {
-            tx.isSynced = true
-            try? ctx.save()
+    /// Applies an edited draft. The caller owns a draft, never a half-mutated
+    /// live object, so a rejected edit leaves the stored record untouched.
+    @discardableResult
+    func editTransaction(_ draft: TransactionDraft) -> Bool {
+        lastWriteErrorCode = nil
+        guard let ledger else {
+            lastWriteErrorCode = "storage_unavailable"
+            return false
         }
-    }
-
-    /// Mutate an existing transaction (used by edit sheets). Reconciles wallet balance
-    /// from old values to new values and queues re-sync. Pass the *current* tx; new field values via closure.
-    func editTransaction(_ tx: Transaction, apply mutate: (Transaction) -> Void) {
-        guard let ctx = modelContext else { return }
-        // Undo old wallet delta
-        applyWalletDelta(for: tx, sign: -1)
-        mutate(tx)
-        // Apply new wallet delta
-        applyWalletDelta(for: tx, sign: +1)
-        // Recompute rateAtTime / amountInBase
-        let rate = CurrencyService.toUSD(tx.originalCurrency)
-        tx.rateAtTime = rate
-        tx.amountInBase = tx.originalAmount * rate
-        tx.isSynced = false
-        try? ctx.save()
-        let snap = tx.snapshot()
-        let id = tx.id
-        Task { [weak self] in
-            try? await SupabaseService.shared.saveTransaction(snap)
-            await self?.markSynced(id: id)
+        do {
+            try ledger.editTransaction(draft, scope: AuthService.shared.currentScope)
+            dispatchQueuedWork()
+            return true
+        } catch let error as LedgerWriteError {
+            lastWriteErrorCode = error.code
+            return false
+        } catch {
+            lastWriteErrorCode = "save_failed"
+            return false
         }
     }
 
-    // MARK: — Restore from Supabase
-    func restoreFromCloud() async {
-        guard let ctx = modelContext else { return }
+    // MARK: — Wallets and categories
+
+    /// Creates or updates; `saveWallet` on the store is an upsert by identity.
+    @discardableResult
+    func saveWallet(_ draft: WalletDraft) -> Bool {
+        write { ledger, scope in try ledger.saveWallet(draft, scope: scope) }
+    }
+
+    /// Archiving, never deletion. The wallet stops accepting new entries and
+    /// stays behind every record that already points at it.
+    @discardableResult
+    func archiveWallet(id: UUID) -> Bool {
+        write { ledger, scope in try ledger.archiveWallet(id: id, scope: scope) }
+    }
+
+    @discardableResult
+    func saveCategory(_ draft: CategoryDraft) -> Bool {
+        write { ledger, scope in try ledger.saveCategory(draft, scope: scope) }
+    }
+
+    @discardableResult
+    func archiveCategory(id: UUID) -> Bool {
+        write { ledger, scope in try ledger.archiveCategory(id: id, scope: scope) }
+    }
+
+    /// Whether anything already points at this wallet. A wallet with history
+    /// cannot change currency: doing so would silently reinterpret every
+    /// quantity recorded against it.
+    func walletHasLinkedRecords(id: UUID) -> Bool {
+        guard let ctx = modelContext else { return false }
+        let count = (try? ctx.fetchCount(FetchDescriptor<Transaction>(
+            predicate: #Predicate { $0.walletID == id || $0.destinationWalletID == id }))) ?? 0
+        return count > 0
+    }
+
+    /// Whether this entity still has work in the durable queue. Used for the
+    /// "waiting to sync" line: a local save is a real receipt on its own, and
+    /// saying so is not the same as claiming the server has it.
+    func isAwaitingSync(entityID: UUID) -> Bool {
+        guard let ctx = modelContext else { return false }
+        let completed = PendingMutationState.completed.rawValue
+        let count = (try? ctx.fetchCount(FetchDescriptor<PendingMutation>(
+            predicate: #Predicate { $0.entityID == entityID && $0.stateRaw != completed }))) ?? 0
+        return count > 0
+    }
+
+    func walletName(id: UUID?) -> String {
+        guard let id, let ctx = modelContext else { return "" }
+        return (try? ctx.fetch(FetchDescriptor<Wallet>(
+            predicate: #Predicate { $0.id == id })).first?.name) ?? "" 
+    }
+
+    private func write(_ body: (LedgerStore, AccountScope) throws -> LocalSaveReceipt) -> Bool {
+        lastWriteErrorCode = nil
+        guard let ledger else {
+            lastWriteErrorCode = "storage_unavailable"
+            return false
+        }
+        do {
+            _ = try body(ledger, AuthService.shared.currentScope)
+            dispatchQueuedWork()
+            return true
+        } catch let error as LedgerWriteError {
+            lastWriteErrorCode = error.code
+            return false
+        } catch {
+            lastWriteErrorCode = "save_failed"
+            return false
+        }
+    }
+
+    /// Pulls the change feed, then pushes whatever is queued. Used on launch
+    /// and right after signing in.
+    func syncNow() async {
+        guard AuthService.shared.isSignedIn else { return }
+        let scope = AuthService.shared.currentScope
+        await syncCoordinator?.pull(scope: scope)
+        // Rows that predate the ledger are not in the feed; see the comment on
+        // `restoreLegacyRowsFromCloud`.
+        await restoreLegacyRowsFromCloud()
+        syncCoordinator?.trigger(scope: scope)
+        loadCategories()
+    }
+
+    /// Starts the push loop. Safe to call after every write: the coordinator
+    /// collapses concurrent runs.
+    func dispatchQueuedWork() {
+        guard let syncCoordinator, AuthService.shared.isSignedIn else { return }
+        syncCoordinator.trigger(scope: AuthService.shared.currentScope)
+    }
+
+    private func transaction(id: UUID, ownerID: String) throws -> Transaction? {
+        guard let ctx = modelContext else { return nil }
+        return try ctx.fetch(FetchDescriptor<Transaction>(
+            predicate: #Predicate { $0.id == id && $0.userId == ownerID })).first
+    }
+
+    /// Current balance of every live wallet, derived from opening balance plus
+    /// the effects of the owner's transactions. Never a stored running total.
+    func walletBalances() -> [UUID: Decimal] {
+        guard let ctx = modelContext else { return [:] }
+        let ownerID = AuthService.shared.userId
+        // Archived wallets are included deliberately. Archiving hides a wallet
+        // from new entries; the transactions already pointing at it still have
+        // effects, and leaving it out makes `effects` throw `unknownWallet` —
+        // which would wipe out *every* balance, not just this one's.
+        let wallets = ((try? ctx.fetch(FetchDescriptor<Wallet>())) ?? [])
+            .filter { $0.userId == ownerID }
+        let transactions = LedgerScope.activeTransactions(
+            (try? ctx.fetch(FetchDescriptor<Transaction>())) ?? [], ownerID: ownerID)
+        return (try? WalletLedger.balances(
+            opening: Dictionary(wallets.map { ($0.id, $0.openingBalance) },
+                                uniquingKeysWith: { first, _ in first }),
+            transactions: transactions.compactMap { $0.draftForCalculation },
+            wallets: Dictionary(wallets.map { ($0.id, $0.descriptor) },
+                                uniquingKeysWith: { first, _ in first }),
+            ownerID: ownerID)) ?? [:]
+    }
+
+    // MARK: — Legacy cloud rows
+
+    /// Reads rows that predate the ledger protocol.
+    ///
+    /// **This is still needed and must not be retired yet.** The change feed
+    /// returns rows with `cursor > after`, and every row already in production
+    /// carries `ledger_revision = 0` — so a pull from zero returns none of
+    /// them. Removing this path would make an existing user's history
+    /// disappear on a new device. Task 18 adopts those rows into the ledger;
+    /// this goes away then, and not before.
+    ///
+    /// Two things are fixed compared with the version this replaces:
+    /// identity is compared as **UUID values**, not as strings (Swift writes
+    /// `uuidString` in uppercase and the server returns lowercase, which is why
+    /// a restore used to create a second copy of the same transaction — 32 of
+    /// the 70 production rows are uppercase); and anything the ledger already
+    /// knows about is left alone.
+    ///
+    /// Not fixed here: the server-side row cap on this legacy endpoint. A
+    /// history larger than that cap is still not fully represented by this
+    /// path — only by the feed, once the rows are adopted.
+    func restoreLegacyRowsFromCloud() async {
+        guard let ctx = modelContext, AuthService.shared.isSignedIn else { return }
+        let ownerID = AuthService.shared.userId
+
         do {
             let remote = try await SupabaseService.shared.fetchTransactions()
-            let existing = (try? ctx.fetch(FetchDescriptor<Transaction>()))?.compactMap { $0.id.uuidString } ?? []
-            let existingSet = Set(existing)
+            let known = Set(((try? ctx.fetch(FetchDescriptor<Transaction>())) ?? []).map(\.id))
 
-            for r in remote {
-                if r.deleted_at != nil { continue }
-                if let localId = r.local_id, existingSet.contains(localId) { continue }
+            for row in remote where row.deleted_at == nil {
+                guard let localID = row.local_id.flatMap(UUID.init(uuidString:)),
+                      !known.contains(localID) else { continue }
                 let tx = Transaction(
-                    userId: r.user_id ?? AuthService.shared.userId,
-                    type: TransactionType(rawValue: r.type ?? "expense") ?? .expense,
-                    originalAmount: r.original_amount,
-                    originalCurrency: r.original_currency,
-                    amountInBase: r.amount_in_base ?? r.original_amount,
-                    baseCurrency: r.base_currency ?? "USD",
-                    rateAtTime: r.rate_at_time ?? 1.0,
-                    categoryName: r.category_name ?? "Other",
-                    merchant: r.merchant ?? "",
-                    note: r.note ?? "",
-                    occurredAt: r.occurred_at.flatMap { Formatters.date(fromISO: $0) } ?? .now,
-                    source: TransactionSource(rawValue: r.source ?? "text") ?? .text,
-                    confidence: r.confidence ?? 0.8,
-                    rawInput: r.raw_input ?? "",
-                    walletName: r.wallet_name ?? "",
-                    isSynced: true
-                )
+                    id: localID,
+                    userId: row.user_id ?? ownerID,
+                    type: TransactionType(rawValue: row.type ?? "expense") ?? .expense,
+                    originalAmount: row.original_amount,
+                    originalCurrency: row.original_currency,
+                    // Missing means missing. Defaulting the base to the original
+                    // amount and the rate to 1 claimed a USD value nobody had —
+                    // reports now count such a row as unconverted instead.
+                    amountInBase: row.amount_in_base ?? 0,
+                    baseCurrency: row.base_currency ?? "USD",
+                    rateAtTime: row.rate_at_time ?? 0,
+                    categoryName: row.category_name ?? "Other",
+                    merchant: row.merchant ?? "",
+                    note: row.note ?? "",
+                    occurredAt: row.occurred_at.flatMap { Formatters.date(fromISO: $0) } ?? .now,
+                    source: TransactionSource(rawValue: row.source ?? "text") ?? .text,
+                    confidence: row.confidence ?? 0.8,
+                    rawInput: row.raw_input ?? "",
+                    walletName: row.wallet_name ?? "",
+                    isSynced: true)
+                // Marked legacy on purpose: it has no exact amount and no
+                // ledger revision, so it is excluded from exact calculations
+                // until Task 18 adopts it.
+                tx.migrationState = .legacy
                 ctx.insert(tx)
             }
-            try? ctx.save()
 
-            // Restore custom categories
-            let remoteCats = (try? await SupabaseService.shared.fetchCategories()) ?? []
-            let existingCatIds = Set((try? ctx.fetch(FetchDescriptor<Category>()))?.map { $0.id.uuidString } ?? [])
-            for c in remoteCats where !(c.is_default ?? false) {
-                if let localId = c.local_id, existingCatIds.contains(localId) { continue }
-                let cat = Category(
-                    name: c.name,
-                    icon: c.icon ?? "tag",
-                    colorHex: c.color_hex ?? "5271B4",
-                    type: c.type ?? "expense",
-                    isDefault: false,
-                    sortOrder: c.sort_order ?? 99
-                )
-                ctx.insert(cat)
+            let remoteCategories = (try? await SupabaseService.shared.fetchCategories()) ?? []
+            let knownCategories = Set(((try? ctx.fetch(FetchDescriptor<SumIt.Category>())) ?? []).map(\.id))
+            for row in remoteCategories where !(row.is_default ?? false) {
+                guard let localID = row.local_id.flatMap(UUID.init(uuidString:)),
+                      !knownCategories.contains(localID) else { continue }
+                let category = SumIt.Category(id: localID, name: row.name,
+                                              icon: row.icon ?? "tag",
+                                              colorHex: row.color_hex ?? "5271B4",
+                                              type: row.type ?? "expense",
+                                              isDefault: false,
+                                              sortOrder: row.sort_order ?? 99,
+                                              ownerID: ownerID)
+                ctx.insert(category)
             }
 
-            // Restore wallets
             let remoteWallets = (try? await SupabaseService.shared.fetchWallets()) ?? []
-            let existingWalletIds = Set((try? ctx.fetch(FetchDescriptor<Wallet>()))?.map { $0.id.uuidString } ?? [])
-            for w in remoteWallets {
-                if let localId = w.local_id, existingWalletIds.contains(localId) { continue }
-                let wallet = Wallet(
-                    userId: w.user_id ?? AuthService.shared.userId,
-                    name: w.name,
-                    type: WalletType(rawValue: w.type ?? "bank") ?? .bank,
-                    currency: w.currency ?? "USD",
-                    balance: w.balance ?? 0,
-                    icon: w.icon ?? ""
-                )
+            let knownWallets = Set(((try? ctx.fetch(FetchDescriptor<Wallet>())) ?? []).map(\.id))
+            for row in remoteWallets {
+                guard let localID = row.local_id.flatMap(UUID.init(uuidString:)),
+                      !knownWallets.contains(localID) else { continue }
+                let wallet = Wallet(id: localID, userId: row.user_id ?? ownerID, name: row.name,
+                                    type: WalletType(rawValue: row.type ?? "bank") ?? .bank,
+                                    currency: row.currency ?? "USD",
+                                    balance: row.balance ?? 0,
+                                    icon: row.icon ?? "")
                 wallet.isSynced = true
                 ctx.insert(wallet)
             }
-            try? ctx.save()
+
+            try ctx.save()
             loadCategories()
         } catch {
-            Log.warn("Cloud restore failed")
+            Log.warn("Legacy cloud restore failed")
         }
     }
 
-    // MARK: — Pending sync queues
-    func syncPendingTransactions() async {
-        guard let ctx = modelContext else { return }
-        let desc = FetchDescriptor<Transaction>(predicate: #Predicate<Transaction> { $0.isSynced == false })
-        guard let unsynced = try? ctx.fetch(desc), !unsynced.isEmpty else { return }
-        let snaps = unsynced.map { $0.snapshot() }
-        let syncedIds = await SupabaseService.shared.syncUnsynced(snaps)
-        let syncedSet = Set(syncedIds)
-        for tx in unsynced where syncedSet.contains(tx.id.uuidString) {
-            tx.isSynced = true
-        }
-        try? ctx.save()
-    }
+    // MARK: — Delete
 
-    func syncPendingWallets() async {
-        guard let ctx = modelContext else { return }
-        let desc = FetchDescriptor<Wallet>(predicate: #Predicate<Wallet> { $0.isSynced == false })
-        guard let unsynced = try? ctx.fetch(desc), !unsynced.isEmpty else { return }
-        for w in unsynced {
-            let snap = w.snapshot()
-            do {
-                try await SupabaseService.shared.saveWallet(snap)
-                w.isSynced = true
-            } catch {
-                Log.warn("Wallet sync deferred")
+    /// Records a tombstone through the ledger. The row is not removed: the
+    /// intent to delete has to outlive this launch and reach other devices.
+    /// Deleting the chat messages that mention it is a separate, local concern.
+    @discardableResult
+    func deleteTransaction(_ tx: Transaction, messages: [ChatMessage]) -> Bool {
+        lastWriteErrorCode = nil
+        guard let ctx = modelContext, let ledger else {
+            lastWriteErrorCode = "storage_unavailable"
+            return false
+        }
+        let scope = AuthService.shared.currentScope
+        do {
+            try ledger.deleteTransaction(id: tx.id, scope: scope)
+        } catch let error as LedgerWriteError {
+            lastWriteErrorCode = error.code
+            return false
+        } catch {
+            lastWriteErrorCode = "save_failed"
+            return false
+        }
+
+        let linked = messages.filter { $0.id == tx.linkedMessageID || $0.linkedTransactionID == tx.id }
+        if !linked.isEmpty {
+            linked.forEach { ctx.delete($0) }
+            do { try ctx.save() } catch {
+                // The transaction is already tombstoned and queued; failing to
+                // tidy the chat does not undo that, and must not claim it did.
+                Log.warn("Chat cleanup after delete failed")
             }
         }
-        try? ctx.save()
-    }
-
-    // MARK: — Delete (reverses wallet balance, soft-deletes remotely)
-    func deleteTransaction(_ tx: Transaction, messages: [ChatMessage]) {
-        guard let ctx = modelContext else { return }
-        let localId = tx.id.uuidString
-
-        applyWalletDelta(for: tx, sign: -1)
-
-        messages.filter { $0.id == tx.linkedMessageID || $0.linkedTransactionID == tx.id }
-            .forEach { ctx.delete($0) }
-
-        ctx.delete(tx)
-        try? ctx.save()
-
-        Task {
-            try? await SupabaseService.shared.deleteTransaction(localId: localId)
-        }
+        dispatchQueuedWork()
+        return true
     }
 
     // MARK: — Wipe (signOut helper)
@@ -310,43 +480,7 @@ final class AppStore: ObservableObject {
         }
     }
 
-    // MARK: — Wallet balances helper (used for Reports.WalletsSection)
-    struct WalletBalance {
-        let name: String
-        let icon: String
-        var totalUSD: Double
-        var currencies: [String: Double]
-    }
-
-    func walletBalances(from txs: [Transaction]) -> [WalletBalance] {
-        var map: [String: WalletBalance] = [:]
-        for tx in txs where !tx.walletName.isEmpty {
-            let w = tx.walletName
-            var bal = map[w] ?? WalletBalance(name: w, icon: walletIcon(w), totalUSD: 0, currencies: [:])
-            let sign: Double = tx.type == .income ? 1 : -1
-            bal.totalUSD += tx.amountInBase * sign
-            bal.currencies[tx.originalCurrency, default: 0] += tx.originalAmount * sign
-            map[w] = bal
-        }
-        return map.values.sorted { abs($0.totalUSD) > abs($1.totalUSD) }
-    }
-
-    private func walletIcon(_ name: String) -> String {
-        let l = name.lowercased()
-        if l.contains("binance") { return "bitcoinsign.circle.fill" }
-        if l.contains("mono")    { return "creditcard.fill" }
-        if l.contains("cash") || l.contains("налич") { return "banknote.fill" }
-        if l.contains("privat")  { return "building.columns.fill" }
-        return "wallet.pass.fill"
-    }
-
     // MARK: — Display helpers
-    func display(amountUSD: Double) -> String {
-        let converted = amountUSD * CurrencyService.usdTo(displayCurrency)
-        return Formatters.amount(converted, currency: displayCurrency, fractionDigits: 2)
-    }
-
-    func toDisplay(_ usd: Double) -> Double { usd * CurrencyService.usdTo(displayCurrency) }
     func color(for name: String) -> Color { allCategories.first { $0.name == name }?.color ?? .gray }
     func icon(for name: String) -> String { allCategories.first { $0.name == name }?.icon ?? "questionmark.circle" }
 
@@ -369,8 +503,6 @@ final class AppStore: ObservableObject {
         return input
     }
 
-    func totalExpenses(_ txs: [Transaction]) -> Double { txs.filter { $0.type == .expense }.reduce(0) { $0 + $1.amountInBase } }
-    func totalIncome(_ txs: [Transaction]) -> Double   { txs.filter { $0.type == .income  }.reduce(0) { $0 + $1.amountInBase } }
 }
 
 // MARK: — Report Period

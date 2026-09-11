@@ -32,6 +32,37 @@ enum Formatters {
         return n
     }
 
+    /// Renders an **exact** stored amount for display: every significant digit
+    /// the record holds, grouped for the current language, never rounded.
+    ///
+    /// `amount(_:fractionDigits:)` above takes a `Double` and a digit count, so
+    /// it can only ever show an approximation of what is stored. Confirmation
+    /// and receipt copy must show the number that will actually be saved.
+    static func exactAmount(_ canonical: String, currency: String? = nil) -> String {
+        refreshIfNeeded()
+        let separator = cachedLocale.decimalSeparator ?? "."
+        var parts = canonical.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
+        var integer = String(parts.first ?? "0")
+        let isNegative = integer.hasPrefix("-")
+        if isNegative { integer.removeFirst() }
+
+        var grouped = ""
+        for (offset, character) in integer.reversed().enumerated() {
+            if offset > 0, offset % 3 == 0 { grouped.append(" ") }
+            grouped.append(character)
+        }
+        var text = (isNegative ? "-" : "") + String(grouped.reversed())
+        if parts.count > 1, !parts[1].isEmpty { text += separator + String(parts[1]) }
+        if let currency, !currency.isEmpty { return "\(text) \(currency)" }
+        return text
+    }
+
+    /// Convenience for a `Decimal` that is already exact.
+    static func exactAmount(_ value: Decimal, currency: String? = nil) -> String {
+        guard let canonical = try? MoneyCodec.encode(value) else { return "\(value)" }
+        return exactAmount(canonical, currency: currency)
+    }
+
     /// Short date in current app language.
     static func shortDate(_ date: Date) -> String {
         refreshIfNeeded()
@@ -71,6 +102,21 @@ enum Formatters {
     private static func isFiat(_ currency: String?) -> Bool {
         guard let c = currency?.uppercased() else { return true }
         return !["BTC", "ETH"].contains(c)
+    }
+}
+
+// MARK: — Exact amounts (no Double, no grouping) — see money-value.swift
+
+extension Formatters {
+    /// Text for an **editable** amount field. Carries full precision and no
+    /// grouping, so opening an editor and saving it unchanged cannot alter the
+    /// stored value. Display formatting (`amount(_:currency:fractionDigits:)`)
+    /// rounds for readability and must never be used to seed an editor.
+    ///
+    /// `nonisolated` so ViewModels, actors and tests can call it without hopping
+    /// to the main actor.
+    nonisolated static func editAmount(_ value: Decimal, locale: Locale) throws -> String {
+        try MoneyCodec.editString(value, locale: locale)
     }
 }
 

@@ -11,6 +11,34 @@ struct ChatComposer: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Segments that came back unrecognized. They stay visible with a
+            // retry until the user dismisses them, so a failed AI call cannot
+            // quietly shrink the batch.
+            if !vm.failedSegments.isEmpty {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text(String(format: L("chat_failed_banner"), vm.failedSegments.count))
+                        .font(.system(size: 13))
+                        .lineLimit(1)
+                    Spacer()
+                    Button(L("chat_retry_failed")) {
+                        Task { await vm.retryFailedSegments() }
+                    }
+                    .font(.system(size: 13, weight: .semibold))
+                    .disabled(vm.isLoading)
+                    Button(L("chat_discard_failed")) {
+                        vm.failedSegments = []
+                    }
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 8)
+                .background(Color.orange.opacity(0.08))
+                .accessibilityIdentifier("chat-failed-segments-banner")
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
             // Voice transcript preview
             if voice.isRecording {
                 HStack(spacing: 8) {

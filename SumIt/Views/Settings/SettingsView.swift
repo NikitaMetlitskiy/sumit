@@ -9,6 +9,14 @@ struct SettingsView: View {
     @ObservedObject var localization: LocalizationManager = .shared
     @EnvironmentObject var appLock: AppLockManager
     @Environment(\.modelContext) private var modelContext
+    @ObservedObject private var auth: AuthService = .shared
+
+    @Query private var storedIssues: [SyncIssue]
+
+    /// Only what the signed-in owner still has to decide.
+    private var openIssueCount: Int {
+        storedIssues.filter { $0.ownerID == auth.userId && $0.resolvedAt == nil }.count
+    }
 
     @State private var showCurrencyPicker = false
     @State private var showCategoryManager = false
@@ -16,6 +24,7 @@ struct SettingsView: View {
     @State private var showProfileEdit = false
     @State private var showPaywallSheet = false
     @State private var showWalletManager = false
+    @State private var showSyncIssues = false
     @State private var dailyOn = true
     @State private var weeklyOn = UserDefaults.standard.object(forKey: "weeklyOn") as? Bool ?? true
 
@@ -38,6 +47,7 @@ struct SettingsView: View {
             .sheet(isPresented: $showProfileEdit) { ProfileEditView(store: store) }
             .sheet(isPresented: $showPaywallSheet) { PaywallView(isPresented: $showPaywallSheet) }
             .sheet(isPresented: $showWalletManager) { WalletManagerSheet(store: store) }
+            .sheet(isPresented: $showSyncIssues) { SyncIssuesView(store: store) }
         }
     }
 
@@ -164,6 +174,23 @@ struct SettingsView: View {
             Button { showWalletManager = true } label: {
                 Label(L("wallets"), systemImage: "creditcard").foregroundColor(.primary)
             }
+            // Shown whenever something is waiting: a conflict the user never
+            // sees is a conflict that resolves itself by being ignored.
+            if openIssueCount > 0 {
+                Button { showSyncIssues = true } label: {
+                    HStack {
+                        Label(L("sync_issues_row"), systemImage: "arrow.triangle.branch")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(openIssueCount)")
+                            .font(.caption.bold())
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8).padding(.vertical, 3)
+                            .background(Capsule().fill(.orange))
+                    }
+                }
+                .accessibilityIdentifier("settings-sync-issues")
+            }
         }
     }
 
@@ -223,7 +250,28 @@ struct SettingsView: View {
             }
             Button {} label: { Label(L("support"), systemImage: "questionmark.circle").foregroundColor(.primary) }
             Button {} label: { Label(L("privacy"), systemImage: "hand.raised").foregroundColor(.primary) }
+            rateSourcesRow
         }
+    }
+
+    /// Where exchange rates come from. CoinGecko's API terms require a
+    /// prominent "Powered by CoinGecko" with a link; Frankfurter aggregates
+    /// central-bank reference rates and asks users to respect those sources.
+    private var rateSourcesRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label(L("about_rate_sources"), systemImage: "arrow.left.arrow.right")
+            HStack(spacing: 4) {
+                Link("Frankfurter", destination: URL(string: "https://frankfurter.dev")!)
+                Text("·").foregroundColor(.secondary)
+                Link("Powered by CoinGecko", destination: URL(string: "https://www.coingecko.com/en/api")!)
+            }
+            .font(.footnote)
+            Text(L("about_rate_sources_note"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 2)
+        .accessibilityIdentifier("settings-rate-sources")
     }
 
     private var versionString: String {

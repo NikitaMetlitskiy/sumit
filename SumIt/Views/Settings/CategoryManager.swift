@@ -4,10 +4,20 @@ import SwiftData
 struct CategoryManagerSheet: View {
     @ObservedObject var store: AppStore
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Category.sortOrder) var categories: [Category]
+    @Query(sort: \Category.sortOrder) private var storedCategories: [Category]
+    @ObservedObject private var auth = AuthService.shared
+
+    var categories: [Category] { LedgerScope.activeCategories(storedCategories, ownerID: auth.userId) }
     @Environment(\.dismiss) var dismiss
     @State private var showAdd = false
     @State private var mode: CategoryMode = .normal
+    @State private var actionError: String?
+
+    private func draft(_ category: Category, sortOrder: Int) -> CategoryDraft {
+        CategoryDraft(id: category.id, name: category.name, icon: category.icon,
+                      colorHex: category.colorHex, type: category.typeRaw,
+                      sortOrder: sortOrder)
+    }
 
     enum CategoryMode { case normal, reorder, delete }
 
@@ -33,18 +43,39 @@ struct CategoryManagerSheet: View {
                     .moveDisabled(mode == .delete)
                 }
                 .onMove { indices, newOffset in
-                    var cats = Array(categories)
-                    cats.move(fromOffsets: indices, toOffset: newOffset)
-                    for (i, c) in cats.enumerated() { c.sortOrder = i }
-                    try? modelContext.save()
+                    var ordered = Array(categories)
+                    ordered.move(fromOffsets: indices, toOffset: newOffset)
+                    // Only custom categories are the user's to write. A bundled
+                    // default belongs to no account and has no queue entry.
+                    for (position, category) in ordered.enumerated() where !category.isDefault {
+                        guard store.saveCategory(draft(category, sortOrder: position)) else {
+                            actionError = LedgerErrorCopy.text(for: store.lastWriteErrorCode)
+                            break
+                        }
+                    }
                     store.loadCategories()
                 }
                 .onDelete { indices in
-                    indices.map { categories[$0] }
-                        .filter { !$0.isDefault }
-                        .forEach { modelContext.delete($0) }
-                    try? modelContext.save()
+                    // Archived, not deleted: transactions already carry this
+                    // category's name and must stay readable.
+                    for category in indices.map({ categories[$0] }) where !category.isDefault {
+                        guard store.archiveCategory(id: category.id) else {
+                            actionError = LedgerErrorCopy.text(for: store.lastWriteErrorCode)
+                            break
+                        }
+                    }
                     store.loadCategories()
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if let actionError {
+                    Text(actionError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .padding()
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                        .padding()
+                        .accessibilityIdentifier("category-error")
                 }
             }
             .environment(\.editMode, .constant(editMode))
@@ -87,6 +118,7 @@ struct AddCategorySheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) var dismiss
     @State private var name = ""
+    @State private var addError: String?
     @State private var selectedIcon = "tag.fill"
     @State private var selectedColor = "5271B4"
 
@@ -129,22 +161,34 @@ struct AddCategorySheet: View {
                     }.padding(.vertical, 4)
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                if let addError {
+                    Text(addError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .padding()
+                        .accessibilityIdentifier("category-add-error")
+                }
+            }
             .navigationTitle(L("new_category"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button(L("cancel")) { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(L("add")) {
-                        let cat = Category(name: name, icon: selectedIcon, colorHex: selectedColor, sortOrder: 99)
-                        modelContext.insert(cat)
-                        try? modelContext.save()
+                        let draft = CategoryDraft(id: UUID(), name: name, icon: selectedIcon,
+                                                  colorHex: selectedColor, type: "expense",
+                                                  sortOrder: 99)
+                        guard store.saveCategory(draft) else {
+                            addError = LedgerErrorCopy.text(for: store.lastWriteErrorCode)
+                            return
+                        }
                         store.loadCategories()
-                        let snap = cat.snapshot(userId: AuthService.shared.userId)
-                        Task { try? await SupabaseService.shared.saveCategory(snap) }
                         dismiss()
                     }
                     .disabled(name.isEmpty)
                     .fontWeight(.semibold)
+                    .accessibilityIdentifier("category-add")
                 }
             }
         }

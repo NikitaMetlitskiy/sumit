@@ -8,11 +8,26 @@ struct ConfirmationCard: View {
     let onEdit: (ParsedTransaction) -> Void
     let onCancel: () -> Void
 
-    @Query(sort: \Wallet.createdAt) var wallets: [Wallet]
+    @Query(sort: \Wallet.createdAt) private var storedWallets: [Wallet]
+    @ObservedObject private var auth: AuthService = .shared
     @State private var showEdit = false
-    @State private var selectedWalletId: UUID? = nil
+    /// Guards the Save button. A second tap must not create a second
+    /// transaction identity while the first one is still being written.
+    @State private var isConfirming = false
+    /// What the rate service answered for this card's currency and day.
+    @State private var quoteState: QuoteAvailability?
+
+    var wallets: [Wallet] { LedgerScope.activeWallets(storedWallets, ownerID: auth.userId) }
 
     var isLowConfidence: Bool { parsed.confidence < 0.7 }
+
+    /// The exact amount as text: `amount_decimal` from the parser, or — for a
+    /// response from a server that predates contract v2 — the shortest faithful
+    /// reading of its Double.
+    private var exactAmountText: String {
+        if let exact = parsed.amountExact, !exact.isEmpty { return exact }
+        return (try? MoneyCodec.encode((try? MoneyCodec.decode(String(parsed.amount))) ?? 0)) ?? "0"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -30,6 +45,7 @@ struct ConfirmationCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color(.systemGray4), lineWidth: 0.5))
         .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+        .task(id: "\(parsed.currency.uppercased())|\(quoteDay ?? "current")") { await loadQuote() }
         .sheet(isPresented: $showEdit) {
             EditParsedView(parsed: $parsed, store: store) {
                 showEdit = false
@@ -37,10 +53,13 @@ struct ConfirmationCard: View {
             }
         }
         .onAppear {
-            if !parsed.walletName.isEmpty {
-                selectedWalletId = wallets.first(where: {
-                    $0.name.lowercased() == parsed.walletName.lowercased()
-                })?.id
+            // A name is resolved to an identity once, here. Nothing downstream
+            // matches wallets by name any more.
+            if parsed.walletID == nil, !parsed.walletName.isEmpty {
+                let matches = wallets.filter {
+                    $0.name.compare(parsed.walletName, options: .caseInsensitive) == .orderedSame
+                }
+                if matches.count == 1 { parsed.walletID = matches[0].id }
             }
         }
     }
@@ -69,19 +88,67 @@ struct ConfirmationCard: View {
                 Text(parsed.type == .income ? "+" : "-")
                     .font(.system(size: 28, weight: .medium))
                     .foregroundColor(parsed.type == .income ? .green : .primary)
-                Text(Formatters.amount(parsed.amount, fractionDigits: 0))
+                Text(Formatters.exactAmount(exactAmountText))
                     .font(.system(size: 36, weight: .semibold))
+                    .accessibilityIdentifier("confirmation-amount")
                 Text(parsed.currency)
                     .font(.system(size: 20)).foregroundColor(.secondary)
             }
-            let usdAmount = parsed.amount * CurrencyService.toUSD(parsed.currency)
-            let displayAmount = usdAmount * CurrencyService.usdTo(store.displayCurrency)
-            if parsed.currency != store.displayCurrency {
-                Text("≈ \(Formatters.amount(displayAmount, currency: store.displayCurrency, fractionDigits: 2))")
-                    .font(.caption).foregroundColor(.secondary)
-            }
+            valuationLine
         }
         .padding(.horizontal, 16).padding(.vertical, 12)
+    }
+
+    private var quoteDay: String? { RatePolicy.requestDay(for: parsed.occurredAt, now: Date()) }
+
+    /// The USD value this entry will be booked at, or a plain statement that it
+    /// will be saved without one. Shown before Save, so tapping Save is the
+    /// confirmation of the rate too.
+    @ViewBuilder
+    private var valuationLine: some View {
+        if parsed.currency.uppercased() != "USD" {
+            HStack(spacing: 6) {
+                if case .quoted(let quote)? = parsed.valuation {
+                    Text(bookedPreview(quote)).font(.caption).foregroundColor(.secondary)
+                } else if case .stale(let quote)? = quoteState {
+                    Text(String(format: L("valuation_stale"), Formatters.shortDate(quote.effectiveAt)))
+                        .font(.caption).foregroundColor(.orange)
+                    Button(L("valuation_use_stale")) { parsed.valuation = .quoted(quote) }
+                        .font(.caption)
+                } else if quoteState == nil {
+                    ProgressView().controlSize(.mini)
+                    Text(L("valuation_loading")).font(.caption).foregroundColor(.secondary)
+                } else {
+                    Text(L("receipt_unconverted")).font(.caption).foregroundColor(.secondary)
+                }
+            }
+            .accessibilityIdentifier("confirmation-valuation")
+        }
+    }
+
+    private func bookedPreview(_ quote: RateQuote) -> String {
+        guard let amount = try? MoneyCodec.decode(exactAmountText),
+              let rate = try? MoneyCodec.decode(quote.usdPerUnit),
+              let usd = try? MoneyCodec.quantize(amount * rate, scale: 2) else { return QuoteText.line(quote) }
+        return "≈ \(Formatters.exactAmount(usd, currency: "USD")) · \(QuoteText.line(quote))"
+    }
+
+    private func loadQuote() async {
+        let currency = parsed.currency.uppercased()
+        guard currency != "USD" else { return }
+        if case .quoted(let quote)? = parsed.valuation,
+           quote.currency == currency, quote.requestedDate == quoteDay || quote.valuationKind == .manual {
+            return
+        }
+        parsed.valuation = nil
+        quoteState = nil
+        guard let rateService = store.rateService else {
+            quoteState = .unavailable(reason: "offline", retryable: true)
+            return
+        }
+        let result = await rateService.availability(currency: currency, day: quoteDay)
+        quoteState = result
+        if case .fresh(let quote) = result { parsed.valuation = .quoted(quote) }
     }
 
     private var details: some View {
@@ -111,12 +178,13 @@ struct ConfirmationCard: View {
                         .frame(width: 24)
                     Text(L("wallet")).font(.system(size: 14)).foregroundColor(.secondary)
                     Spacer()
-                    Picker("", selection: $selectedWalletId) {
+                    Picker("", selection: $parsed.walletID) {
                         Text(L("not_selected")).tag(nil as UUID?)
                         ForEach(wallets) { w in
-                            Text(w.name).tag(w.id as UUID?)
+                            Text("\(w.name) · \(w.currency)").tag(w.id as UUID?)
                         }
                     }
+                    .accessibilityIdentifier("confirmation-wallet")
                     .pickerStyle(.menu)
                     .font(.system(size: 14, weight: .medium))
                 }
@@ -162,9 +230,20 @@ struct ConfirmationCard: View {
             Divider().frame(height: 44)
 
             Button {
-                if let wId = selectedWalletId, let w = wallets.first(where: { $0.id == wId }) {
-                    parsed.walletName = w.name
+                guard !isConfirming else { return }
+                // The parser can say "this is a transfer"; it cannot say which
+                // two wallets. Until the user has picked both, Save opens the
+                // editor instead of attempting a save that must be refused.
+                if parsed.type == .transfer,
+                   parsed.walletID == nil || parsed.destinationWalletID == nil {
+                    showEdit = true
+                    return
                 }
+                isConfirming = true
+                // Clearing the wallet clears it: the old code only ever wrote a
+                // name in, so deselecting left the previous one attached.
+                parsed.walletName = parsed.walletID
+                    .flatMap { id in wallets.first { $0.id == id }?.name } ?? ""
                 onEdit(parsed)
                 onConfirm()
             } label: {
@@ -176,6 +255,8 @@ struct ConfirmationCard: View {
                 .frame(maxWidth: .infinity).padding(.vertical, 12)
                 .background(parsed.type == .income ? Color.green : Color.accentColor)
             }
+            .disabled(isConfirming)
+            .accessibilityIdentifier("confirmation-save")
         }
     }
 }
@@ -199,95 +280,83 @@ struct DetailRow: View {
     }
 }
 
+/// Edits a parsed transaction before it is saved.
+///
+/// It shares `TransactionFieldsForm` with the edit sheet, so the two editors
+/// cannot drift apart, and it writes back the **exact** strings rather than a
+/// Double reconstructed from what was typed.
 struct EditParsedView: View {
     @Binding var parsed: ParsedTransaction
     let store: AppStore
     let onDone: () -> Void
 
-    @Query(sort: \Wallet.createdAt) var wallets: [Wallet]
-    @State private var amountStr: String = ""
-    @State private var currency: String = "UAH"
-    @State private var categoryName: String = ""
-    @State private var merchant: String = ""
-    @State private var note: String = ""
-    @State private var date: Date = .now
-    @State private var type: TransactionType = .expense
-    @State private var walletName: String = ""
+    @Query(sort: \Wallet.createdAt) private var storedWallets: [Wallet]
+    @ObservedObject private var auth: AuthService = .shared
+    @State private var fields: TransactionEditorFields?
+
+    private var wallets: [Wallet] { LedgerScope.activeWallets(storedWallets, ownerID: auth.userId) }
+
+    private var problem: TransactionEditorProblem? {
+        guard let fields else { return nil }
+        return TransactionEditor.problem(in: fields, id: parsed.id, wallets: wallets,
+                                         ownerID: auth.userId)
+    }
 
     var body: some View {
         NavigationView {
-            Form {
-                Section(L("type_label")) {
-                    Picker(L("type_label"), selection: $type) {
-                        ForEach(TransactionType.allCases, id: \.self) { Text($0.label).tag($0) }
-                    }.pickerStyle(.segmented)
-                }
-                Section(L("amount_currency")) {
-                    HStack {
-                        TextField("0", text: $amountStr)
-                            .keyboardType(.decimalPad)
-                            .font(.system(size: 17, weight: .medium))
-                        Spacer()
-                        Picker(L("currency"), selection: $currency) {
-                            ForEach(CurrencyService.supported, id: \.code) { c in
-                                Text("\(c.flag) \(c.code)").tag(c.code)
-                            }
-                        }.pickerStyle(.menu)
-                    }
-                }
-                Section(L("details")) {
-                    TextField(L("merchant_store"), text: $merchant)
-                    TextField(L("note"), text: $note)
-                    DatePicker(L("date"), selection: $date, displayedComponents: [.date, .hourAndMinute])
-                }
-                Section(L("category")) {
-                    Picker(L("category"), selection: $categoryName) {
-                        ForEach(store.allCategories, id: \.name) { cat in
-                            Label(cat.displayName, systemImage: cat.icon).tag(cat.name)
-                        }
-                    }
-                }
-                if !wallets.isEmpty {
-                    Section(L("wallet")) {
-                        Picker(L("wallet"), selection: $walletName) {
-                            Text(L("not_selected")).tag("")
-                            ForEach(wallets) { w in
-                                Text(w.name).tag(w.name)
-                            }
-                        }
-                    }
+            Group {
+                if let binding = Binding($fields) {
+                    TransactionFieldsForm(fields: binding, wallets: wallets,
+                                          categories: store.allCategories, problem: problem,
+                                          rateService: store.rateService)
+                } else {
+                    ProgressView()
                 }
             }
             .navigationTitle(L("edit"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button(L("cancel")) { onDone() } }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(L("cancel")) { onDone() }
+                }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(L("done")) {
-                        let newAmount = Double(amountStr.replacingOccurrences(of: ",", with: ".")) ?? parsed.amount
-                        parsed = ParsedTransaction(
-                            id: parsed.id,
-                            type: type, amount: newAmount, currency: currency,
-                            categoryName: categoryName.isEmpty ? parsed.categoryName : categoryName,
-                            merchant: merchant,
-                            note: note, occurredAt: date, confidence: parsed.confidence,
-                            rawInput: parsed.rawInput, source: parsed.source,
-                            walletName: walletName
-                        )
-                        onDone()
-                    }.fontWeight(.semibold)
+                    Button(L("done")) { apply() }
+                        .fontWeight(.semibold)
+                        .disabled(problem != nil)
+                        .accessibilityIdentifier("parsed-editor-done")
                 }
             }
             .onAppear {
-                amountStr = String(format: "%.0f", parsed.amount)
-                currency = parsed.currency
-                categoryName = parsed.categoryName
-                merchant = parsed.merchant == "Unknown" ? "" : parsed.merchant
-                note = parsed.note
-                date = parsed.occurredAt
-                type = parsed.type
-                walletName = parsed.walletName
+                if fields == nil {
+                    fields = TransactionEditor.fields(from: parsed, wallets: wallets,
+                                                      ownerID: auth.userId)
+                }
             }
         }
+    }
+
+    /// Writes the edited values back onto the binding the card holds, so the
+    /// card confirms exactly what is on screen.
+    private func apply() {
+        guard let fields,
+              case .success(let draft) = TransactionEditor.draft(
+                from: fields, id: parsed.id, wallets: wallets, ownerID: auth.userId) else { return }
+
+        parsed.type = draft.type
+        parsed.amountExact = try? MoneyCodec.encode(draft.amount)
+        parsed.amount = NSDecimalNumber(decimal: draft.amount).doubleValue
+        parsed.currency = draft.currency
+        parsed.categoryName = draft.categoryName.isEmpty ? parsed.categoryName : draft.categoryName
+        parsed.merchant = draft.merchant
+        parsed.note = draft.note
+        parsed.occurredAt = draft.occurredAt
+        parsed.walletID = draft.walletID
+        parsed.walletAmountExact = try? draft.walletAmount.map(MoneyCodec.encode)
+        parsed.destinationWalletID = draft.destinationWalletID
+        parsed.valuation = draft.valuation
+        parsed.destinationAmountExact = try? draft.destinationAmount.map(MoneyCodec.encode)
+        parsed.walletName = draft.walletID
+            .flatMap { id in wallets.first { $0.id == id }?.name } ?? ""
+        onDone()
     }
 }

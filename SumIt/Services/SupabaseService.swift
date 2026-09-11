@@ -3,8 +3,18 @@ import Foundation
 actor SupabaseService {
     static let shared = SupabaseService()
 
-    private var baseURL: String { AppConfig.supabaseURL }
-    private var anonKey: String { AppConfig.supabaseAnonKey }
+    /// Injected for tests. Production keeps `.shared`, so no unit test can
+    /// reach the network and no production call site changes.
+    let ledgerSession: URLSession
+    let ledgerAuth: LedgerAuth
+
+    init(session: URLSession = .shared, auth: LedgerAuth = .live) {
+        self.ledgerSession = session
+        self.ledgerAuth = auth
+    }
+
+    var baseURL: String { AppConfig.supabaseURL }
+    var anonKey: String { AppConfig.supabaseAnonKey }
 
     // MARK: — Auth headers
     /// Builds Supabase REST headers. If user is not signed in, returns nil
@@ -20,7 +30,7 @@ actor SupabaseService {
     }
 
     // MARK: — URL building helpers
-    private func endpoint(_ path: String, query: [URLQueryItem] = []) -> URL? {
+    func endpoint(_ path: String, query: [URLQueryItem] = []) -> URL? {
         guard var components = URLComponents(string: "\(baseURL)\(path)") else { return nil }
         if !query.isEmpty { components.queryItems = query }
         return components.url
@@ -347,5 +357,220 @@ enum SupabaseError: LocalizedError {
         case .saveFailed(let c): return "Supabase save error: \(c)"
         case .fetchFailed(let c): return "Supabase fetch error: \(c)"
         }
+    }
+}
+
+// MARK: — Ledger transport (Task 10)
+
+/// Every way a ledger request can end, as a distinct case.
+///
+/// The methods this replaces returned `Void` and threw only on a decode error,
+/// or — worse — did `_ = try await URLSession.shared.data(for: req)` and
+/// discarded the response entirely, so an HTTP 404 against a table that did not
+/// exist looked exactly like a successful save. Production shows the result of
+/// that: five transactions naming wallets, and zero wallets on the server.
+enum LedgerTransportError: Error, Equatable {
+    /// The configured URL cannot be built. Never a silent `return`.
+    case configuration
+    /// 401 that survived one refresh. Pause and ask for sign-in; keep everything.
+    case notAuthenticated
+    /// 403. Show an access problem; do not hammer it.
+    case accessDenied
+    /// 400. The server rejected the content itself; retrying the same bytes
+    /// cannot help, so the operation is blocked for correction.
+    case validationRejected(code: String)
+    /// 408/429/5xx. Worth retrying later, with the server's Retry-After if given.
+    case retryable(status: Int, retryAfter: TimeInterval?)
+    /// DNS, offline, timeout. The request may or may not have been received.
+    case unreachable
+    /// 2xx whose body is empty or unparseable — an **unknown** outcome, never
+    /// an acceptance and never an empty dataset.
+    case unknownOutcome
+    /// A well-formed response that does not answer the question that was asked.
+    case protocolMismatch
+    /// The signed-in account changed while the request was in flight.
+    case scopeChanged
+}
+
+/// The authentication facts the transport needs, injectable so a unit test can
+/// drive refresh behaviour without touching the real session.
+struct LedgerAuth: Sendable {
+    var token: @Sendable () async -> String?
+    var currentOwnerID: @Sendable () async -> String
+    /// Returns true when a refresh produced a usable session.
+    var refresh: @Sendable () async -> Bool
+
+    static let live = LedgerAuth(
+        token: { await MainActor.run { AuthService.shared.accessToken } },
+        currentOwnerID: { await MainActor.run { AuthService.shared.userId } },
+        refresh: { await AuthService.shared.refreshSessionIfNeeded() })
+}
+
+extension SupabaseService {
+
+    /// Submits one frozen mutation and returns what the server actually said.
+    func applyLedgerMutation(_ request: LedgerMutationRequest,
+                             scope: AccountScope) async throws -> LedgerMutationResult {
+        let payload: Data
+        do { payload = try JSONEncoder().encode(request) }
+        catch { throw LedgerTransportError.configuration }
+
+        let data = try await callRPC("apply_ledger_mutation_v1", body: payload, scope: scope)
+
+        let result: LedgerMutationResult
+        do { result = try JSONDecoder().decode(LedgerMutationResult.self, from: data) }
+        catch { throw LedgerTransportError.unknownOutcome }
+
+        // The answer has to be to *this* question. A receipt for another
+        // operation, entity or owner is a protocol failure, not an acceptance.
+        guard result.operationID == request.operationID else {
+            throw LedgerTransportError.protocolMismatch
+        }
+        switch result {
+        case .accepted(let accepted):
+            guard accepted.entityID == request.entityID,
+                  accepted.snapshot.header.localID == request.entityID,
+                  accepted.snapshot.header.userID == scope.ownerID else {
+                throw LedgerTransportError.protocolMismatch
+            }
+        case .conflict(let conflict):
+            guard conflict.entityID == request.entityID else {
+                throw LedgerTransportError.protocolMismatch
+            }
+            if let snapshot = conflict.serverSnapshot,
+               snapshot.header.userID != scope.ownerID {
+                throw LedgerTransportError.protocolMismatch
+            }
+        }
+        return result
+    }
+
+    /// Reads one bounded page of the owner's change feed.
+    func readLedgerChanges(after: Int64, through: Int64? = nil,
+                           limit: Int = 250,
+                           scope: AccountScope) async throws -> LedgerChangePage {
+        var arguments: [String: Any] = ["p_after_cursor": after, "p_limit": limit]
+        arguments["p_through_cursor"] = through as Any? ?? NSNull()
+
+        let payload: Data
+        do { payload = try JSONSerialization.data(withJSONObject: arguments) }
+        catch { throw LedgerTransportError.configuration }
+
+        let data = try await callRPC("read_ledger_changes_v1", body: payload, scope: scope)
+
+        let page: LedgerChangePage
+        do { page = try JSONDecoder().decode(LedgerChangePage.self, from: data) }
+        catch { throw LedgerTransportError.unknownOutcome }
+
+        // A page that is not strictly ascending, steps outside its own window,
+        // or carries another owner's row is not a page we may apply.
+        var previous = after
+        for change in page.changes {
+            guard change.cursor.value > previous,
+                  change.cursor.value <= page.throughCursor.value,
+                  change.snapshot.header.userID == scope.ownerID,
+                  change.snapshot.header.localID == change.entityID else {
+                throw LedgerTransportError.protocolMismatch
+            }
+            previous = change.cursor.value
+        }
+        guard page.nextCursor.value >= after else { throw LedgerTransportError.protocolMismatch }
+        return page
+    }
+
+    // MARK: Request plumbing
+
+    /// One POST to a PostgREST RPC, with a single serialized refresh-and-retry
+    /// on 401 and an account check on both sides of every await.
+    private func callRPC(_ function: String, body: Data, scope: AccountScope) async throws -> Data {
+        try await requireScope(scope)
+
+        var refreshed = false
+        while true {
+            guard let token = await ledgerAuth.token() else {
+                if refreshed { throw LedgerTransportError.notAuthenticated }
+                refreshed = true
+                guard await ledgerAuth.refresh() else { throw LedgerTransportError.notAuthenticated }
+                try await requireScope(scope)
+                continue
+            }
+
+            guard let url = endpoint("/rest/v1/rpc/\(function)") else {
+                throw LedgerTransportError.configuration
+            }
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue(anonKey, forHTTPHeaderField: "apikey")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.httpBody = body
+            request.timeoutInterval = 30
+
+            let data: Data
+            let response: URLResponse
+            do {
+                (data, response) = try await ledgerSession.data(for: request)
+            } catch {
+                // Offline, DNS failure or timeout. The server may or may not
+                // have received it, so the operation stays retryable.
+                throw LedgerTransportError.unreachable
+            }
+            try await requireScope(scope)
+
+            guard let http = response as? HTTPURLResponse else {
+                throw LedgerTransportError.unknownOutcome
+            }
+
+            switch http.statusCode {
+            case 200...299:
+                guard !data.isEmpty else { throw LedgerTransportError.unknownOutcome }
+                return data
+
+            case 401:
+                // Exactly one refresh, then one retry of the same bytes.
+                guard !refreshed else { throw LedgerTransportError.notAuthenticated }
+                refreshed = true
+                guard await ledgerAuth.refresh() else { throw LedgerTransportError.notAuthenticated }
+                try await requireScope(scope)
+                continue
+
+            case 403:
+                throw LedgerTransportError.accessDenied
+
+            case 400, 409, 422:
+                throw LedgerTransportError.validationRejected(code: Self.errorCode(from: data))
+
+            case 408, 429, 500...599:
+                throw LedgerTransportError.retryable(status: http.statusCode,
+                                                     retryAfter: Self.retryAfter(from: http))
+
+            default:
+                throw LedgerTransportError.unknownOutcome
+            }
+        }
+    }
+
+    private func requireScope(_ scope: AccountScope) async throws {
+        guard await ledgerAuth.currentOwnerID() == scope.ownerID else {
+            throw LedgerTransportError.scopeChanged
+        }
+    }
+
+    /// Keeps PostgREST's machine code, discards its prose. A backend payload is
+    /// never shown to a user and never written to a log.
+    private static func errorCode(from data: Data) -> String {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return "rejected"
+        }
+        let raw = (object["message"] as? String) ?? (object["code"] as? String) ?? "rejected"
+        let sanitized = raw.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "_" }
+        return sanitized.isEmpty ? "rejected" : String(sanitized.prefix(64))
+    }
+
+    private static func retryAfter(from response: HTTPURLResponse) -> TimeInterval? {
+        guard let header = response.value(forHTTPHeaderField: "Retry-After"),
+              let seconds = TimeInterval(header), seconds >= 0 else { return nil }
+        // A server may not send us to sleep for an hour.
+        return min(seconds, 300)
     }
 }

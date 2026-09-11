@@ -14,12 +14,31 @@ final class Wallet {
     var createdAt: Date
     var isSynced: Bool
 
+    // MARK: — Ledger V2 (additive)
+    /// The balance this wallet started from, as a canonical signed string.
+    /// Current balance is derived from it plus active transaction effects —
+    /// `balance` above survives only as a display cache during migration.
+    var openingBalanceExact: String?
+    var serverRevision: Int64 = 0
+    var localGeneration: Int64 = 0
+    /// Archive marker. Deleting a wallet must not erase the history that
+    /// references it, so archived wallets stay readable.
+    var deletedAt: Date?
+    var migrationStateRaw: String = LedgerMigrationState.legacy.rawValue
+
+    var migrationState: LedgerMigrationState {
+        get { LedgerMigrationState(rawValue: migrationStateRaw) ?? .legacy }
+        set { migrationStateRaw = newValue.rawValue }
+    }
+    var isArchived: Bool { deletedAt != nil }
+
     var walletType: WalletType {
         get { WalletType(rawValue: typeRaw) ?? .bank }
         set { typeRaw = newValue.rawValue }
     }
 
     init(
+        id: UUID = UUID(),
         userId: String = "local",
         name: String,
         type: WalletType = .bank,
@@ -27,7 +46,7 @@ final class Wallet {
         balance: Double = 0,
         icon: String = ""
     ) {
-        self.id = UUID()
+        self.id = id
         self.userId = userId
         self.name = name
         self.typeRaw = type.rawValue

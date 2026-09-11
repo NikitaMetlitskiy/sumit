@@ -44,6 +44,42 @@ final class Transaction {
     var linkedMessageID: UUID?      // for delete sync
     var isSynced: Bool              // false = needs upload to Supabase
 
+    // MARK: — Ledger V2 (additive; the Double fields above stay as written)
+    /// Canonical decimal string of the original quantity. Authoritative once set;
+    /// `originalAmount` is kept as a compatibility mirror for untouched callers.
+    var amountExact: String?
+    /// Booked USD value, and USD per one original unit, as canonical strings.
+    var baseAmountExact: String?
+    var rateExact: String?
+    /// Stable wallet relationships. Names are labels; these are the identity.
+    var walletID: UUID?
+    var destinationWalletID: UUID?
+    /// Frozen effect on each wallet, in that wallet's own currency.
+    var walletAmountExact: String?
+    var destinationAmountExact: String?
+    /// Encoded `RateQuote`: where this valuation came from and when.
+    var quoteJSON: Data?
+    var valuationStateRaw: String = ValuationState.legacyUnverified.rawValue
+    /// Last revision the server acknowledged for this row.
+    var serverRevision: Int64 = 0
+    /// Bumped by every local command, so an acknowledgment can tell whether the
+    /// row still holds the version the server accepted.
+    var localGeneration: Int64 = 0
+    /// Tombstone. Deletion is a persisted fact, not an immediate erase.
+    var deletedAt: Date?
+    /// Whether this row has been through adoption or is still a pre-ledger record.
+    var migrationStateRaw: String = LedgerMigrationState.legacy.rawValue
+
+    var valuationState: ValuationState {
+        get { ValuationState(rawValue: valuationStateRaw) ?? .legacyUnverified }
+        set { valuationStateRaw = newValue.rawValue }
+    }
+    var migrationState: LedgerMigrationState {
+        get { LedgerMigrationState(rawValue: migrationStateRaw) ?? .legacy }
+        set { migrationStateRaw = newValue.rawValue }
+    }
+    var isActive: Bool { deletedAt == nil }
+
     var type: TransactionType {
         get { TransactionType(rawValue: typeRaw) ?? .expense }
         set { typeRaw = newValue.rawValue }
@@ -55,6 +91,7 @@ final class Transaction {
     }
 
     init(
+        id: UUID = UUID(),
         userId: String = "local",
         type: TransactionType = .expense,
         originalAmount: Double,
@@ -73,7 +110,7 @@ final class Transaction {
         linkedMessageID: UUID? = nil,
         isSynced: Bool = false
     ) {
-        self.id = UUID()
+        self.id = id
         self.userId = userId
         self.typeRaw = type.rawValue
         self.originalAmount = originalAmount

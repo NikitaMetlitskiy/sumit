@@ -15,34 +15,32 @@ import Combine
 struct SumItApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var appLock = AppLockManager()
+    @StateObject private var storage = StorageBootstrap.makeForLaunch()
     @State private var showSplash = true
-    @State private var migrationError: Error? = nil
-
-    let container: ModelContainer
-
-    init() {
-        let schema = Schema([Transaction.self, Category.self, ChatMessage.self, AppSettings.self, Wallet.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        do {
-            container = try ModelContainer(for: schema, configurations: config)
-        } catch {
-            // Surface error to UI rather than silently wiping. The user sees a recovery screen.
-            Log.error("SwiftData open failed")
-            // Fall back to an in-memory container so the app boots and can show a diagnostic screen.
-            let memConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-            container = try! ModelContainer(for: schema, configurations: memConfig)
-        }
-    }
 
     var body: some Scene {
         WindowGroup {
             ZStack {
-                RootView()
-                    .modelContainer(container)
-                    .environmentObject(appLock)
+                // The financial UI is built only for a real, persistent container.
+                // A failed open gets a recovery surface with no ModelContext at all;
+                // it never gets an in-memory substitute that silently accepts writes.
+                switch storage.state {
+                case .opening:
+                    Color(.systemBackground)
+                case .ready(let container):
+                    RootView()
+                        .modelContainer(container)
+                        .environmentObject(appLock)
+                case .failed(let failure):
+                    StorageRecoveryView(
+                        failure: failure,
+                        onRetry: { storage.retry() },
+                        makeCopy: { try storage.makeRecoveryCopy(into: Self.recoveryCopyDirectory()) })
+                }
 
-                // Lock screen — always rendered, visibility controlled by opacity
-                // No animation = no content flash. Locked immediately at boot if PIN/biometric is on.
+                // Lock screen — always rendered, visibility controlled by opacity.
+                // It stays above the recovery surface too: a storage failure must not
+                // become a way past the PIN.
                 LockScreenView()
                     .environmentObject(appLock)
                     .zIndex(10)
@@ -59,9 +57,17 @@ struct SumItApp: App {
             .onAppear {
                 // Lock synchronously *before* splash dismisses so chat never peeks
                 appLock.lockOnLaunch()
+                storage.open()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     withAnimation { showSplash = false }
                 }
+            }
+            // Nothing that touches data or the network starts until the store is open.
+            .onChange(of: storage.state.isReady, initial: true) {
+                guard let container = storage.state.container else { return }
+                #if DEBUG
+                StorageBootstrap.UITestHooks.seedIfRequested(container)
+                #endif
                 NotificationManager.shared.scheduleDailyReminderIfAuthorized()
             }
         }
@@ -71,10 +77,19 @@ struct SumItApp: App {
                 appLock.handleBackground()
             case .active:
                 appLock.handleReturnFromBackground()
+                guard storage.state.isReady else { return }
                 Task { _ = await AuthService.shared.refreshSessionIfNeeded() }
             default: break
             }
         }
+    }
+
+    /// Destination for a user-requested copy of the database. A temporary
+    /// directory, created only when the user taps the button — the app never
+    /// exports the store on its own.
+    private static func recoveryCopyDirectory() -> URL {
+        URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("SumIt-recovery-copy", isDirectory: true)
     }
 }
 

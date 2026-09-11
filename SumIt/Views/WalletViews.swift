@@ -5,10 +5,18 @@ import SwiftData
 struct WalletManagerSheet: View {
     @ObservedObject var store: AppStore
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Wallet.createdAt) var wallets: [Wallet]
+    @Query(sort: \Wallet.createdAt) private var storedWallets: [Wallet]
+    @ObservedObject private var auth = AuthService.shared
+
+    var wallets: [Wallet] { LedgerScope.activeWallets(storedWallets, ownerID: auth.userId) }
     @Environment(\.dismiss) var dismiss
     @State private var showAdd = false
     @State private var editingWallet: Wallet? = nil
+    @State private var archiveError: String?
+
+    /// Derived from opening balance plus the effects of the owner's entries.
+    /// Never a stored running total that save and delete kept nudging.
+    private var balances: [UUID: Decimal] { store.walletBalances() }
 
     var body: some View {
         NavigationView {
@@ -30,16 +38,22 @@ struct WalletManagerSheet: View {
                 } else {
                     ForEach(wallets) { wallet in
                         Button { editingWallet = wallet } label: {
-                            WalletRow(wallet: wallet, store: store)
+                            WalletRow(wallet: wallet, balance: balances[wallet.id])
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button(role: .destructive) {
-                                deleteWallet(wallet)
+                                archive(wallet)
                             } label: {
-                                Label(L("delete"), systemImage: "trash")
+                                Label(L("editor_archive_wallet"), systemImage: "archivebox")
                             }
                         }
                     }
+                }
+                if let archiveError {
+                    Text(archiveError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .accessibilityIdentifier("wallet-error")
                 }
             }
             .navigationTitle(L("wallets"))
@@ -61,18 +75,19 @@ struct WalletManagerSheet: View {
         }
     }
 
-    private func deleteWallet(_ wallet: Wallet) {
-        let localId = wallet.id.uuidString
-        modelContext.delete(wallet)
-        try? modelContext.save()
-
-        Task { try? await SupabaseService.shared.deleteWallet(localId: localId) }
+    /// Archives. Deleting the row would take every transaction that references
+    /// this wallet with it, and would not reach the user's other devices.
+    private func archive(_ wallet: Wallet) {
+        guard !store.archiveWallet(id: wallet.id) else { return }
+        archiveError = LedgerErrorCopy.text(for: store.lastWriteErrorCode)
     }
 }
 
 struct WalletRow: View {
     let wallet: Wallet
-    let store: AppStore
+    /// `nil` only if the balance could not be derived, which is shown as such
+    /// rather than as a confident zero.
+    let balance: Decimal?
 
     var body: some View {
         HStack(spacing: 12) {
@@ -91,9 +106,16 @@ struct WalletRow: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 2) {
-                Text(Formatters.amount(wallet.balance, fractionDigits: 2))
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(wallet.balance >= 0 ? .primary : .red)
+                if let balance {
+                    Text(Formatters.exactAmount(balance))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(balance >= 0 ? .primary : .red)
+                        .accessibilityIdentifier("wallet-balance")
+                } else {
+                    Text("—")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.secondary)
+                }
                 Text(wallet.currency).font(.caption).foregroundColor(.secondary)
             }
         }
@@ -101,44 +123,116 @@ struct WalletRow: View {
     }
 }
 
+/// Creates or edits one wallet.
+///
+/// The balance field is the **opening** balance — the amount the wallet started
+/// from. The current balance is derived from it plus every entry, so it is
+/// shown but never typed: an editable current balance is what let the stored
+/// total drift away from the transactions it was supposed to summarise.
 struct EditWalletSheet: View {
     @ObservedObject var store: AppStore
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) var dismiss
 
     let wallet: Wallet?
 
     @State private var name: String = ""
     @State private var type: WalletType = .bank
-    @State private var currency: String = "UAH"
-    @State private var balanceStr: String = ""
+    @State private var currency: String = "USD"
+    @State private var openingBalanceText: String = ""
+    @State private var saveError: String?
+    @State private var isSaving = false
 
     var isNew: Bool { wallet == nil }
+
+    /// A wallet with history keeps its currency: changing it would silently
+    /// reinterpret every quantity already recorded against it.
+    private var currencyIsLocked: Bool {
+        guard let wallet else { return false }
+        return store.walletHasLinkedRecords(id: wallet.id)
+    }
+
+    private var openingBalanceProblem: String? {
+        let trimmed = openingBalanceText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "invalid_amount" }
+        do {
+            _ = try AmountParser.parse(trimmed, currency: currency, locale: AppLocale.current,
+                                       allowNegative: true, allowZero: true)
+            return nil
+        } catch let error as MoneyError {
+            switch error {
+            case .excessPrecision:     return "excess_precision"
+            case .outOfRange:          return "amount_out_of_range"
+            case .nonFinite:           return "non_finite_amount"
+            case .unsupportedCurrency: return "unsupported_currency"
+            case .arithmeticFailure:   return "arithmetic_failure"
+            case .invalidSyntax:       return "invalid_amount"
+            }
+        } catch {
+            return "invalid_amount"
+        }
+    }
+
+    private var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && openingBalanceProblem == nil && !isSaving
+    }
 
     var body: some View {
         NavigationView {
             Form {
                 Section(L("name")) {
                     TextField(L("wallet_name_placeholder"), text: $name)
+                        .accessibilityIdentifier("wallet-name")
                 }
                 Section(L("wallet_type")) {
                     Picker(L("wallet_type"), selection: $type) {
-                        ForEach(WalletType.allCases, id: \.self) { t in
-                            Label(t.label, systemImage: t.defaultIcon).tag(t)
+                        ForEach(WalletType.allCases, id: \.self) { item in
+                            Label(item.label, systemImage: item.defaultIcon).tag(item)
                         }
                     }.pickerStyle(.menu)
                 }
-                Section(L("balance")) {
+                Section {
                     HStack {
-                        TextField("0", text: $balanceStr)
-                            .keyboardType(.decimalPad)
+                        TextField("0", text: $openingBalanceText)
+                            .keyboardType(.numbersAndPunctuation)
                             .font(.system(size: 17, weight: .medium))
+                            .accessibilityIdentifier("wallet-opening-balance")
                         Spacer()
                         Picker("", selection: $currency) {
-                            ForEach(CurrencyService.supported, id: \.code) { c in
-                                Text("\(c.flag) \(c.code)").tag(c.code)
+                            ForEach(CurrencyService.supported, id: \.code) { item in
+                                Text("\(item.flag) \(item.code)").tag(item.code)
                             }
-                        }.pickerStyle(.menu)
+                        }
+                        .pickerStyle(.menu)
+                        .disabled(currencyIsLocked)
+                    }
+                    if let problem = openingBalanceProblem, !openingBalanceText.isEmpty,
+                       let text = LedgerErrorCopy.text(for: problem) {
+                        Text(text).font(.caption).foregroundStyle(.red)
+                            .accessibilityIdentifier("wallet-field-error")
+                    }
+                } header: {
+                    Text(L("editor_opening_balance"))
+                } footer: {
+                    if currencyIsLocked { Text(L("editor_currency_locked")) }
+                }
+
+                if let wallet, let current = store.walletBalances()[wallet.id] {
+                    Section(L("editor_current_balance")) {
+                        HStack {
+                            Text(L("editor_current_balance")).foregroundStyle(.secondary)
+                            Spacer()
+                            Text(Formatters.exactAmount(current, currency: wallet.currency))
+                                .accessibilityIdentifier("wallet-current-balance")
+                        }
+                        .font(.subheadline)
+                    }
+                }
+
+                if let saveError {
+                    Section {
+                        Text(saveError).font(.footnote).foregroundStyle(.red)
+                            .accessibilityIdentifier("wallet-save-error")
                     }
                 }
             }
@@ -150,66 +244,52 @@ struct EditWalletSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isNew ? L("add") : L("save")) { save() }
-                        .disabled(name.isEmpty)
+                        .disabled(!canSave)
                         .fontWeight(.semibold)
+                        .accessibilityIdentifier("wallet-save")
                 }
             }
-            .onAppear {
-                if let w = wallet {
-                    name = w.name
-                    type = w.walletType
-                    currency = w.currency
-                    balanceStr = String(format: "%.2f", w.balance)
-                }
-            }
+            .onAppear(perform: load)
         }
     }
 
+    private func load() {
+        guard let wallet else {
+            currency = store.displayCurrency
+            openingBalanceText = "0"
+            return
+        }
+        name = wallet.name
+        type = wallet.walletType
+        currency = wallet.currency
+        // The exact stored opening balance. Reformatting it through "%.2f"
+        // would quietly round a crypto wallet on every visit.
+        openingBalanceText = wallet.openingBalanceExact
+            ?? (try? MoneyCodec.editString(wallet.openingBalance, locale: AppLocale.current)) ?? "0"
+    }
+
     private func save() {
-        let balance = Double(balanceStr.replacingOccurrences(of: ",", with: ".")) ?? 0
+        guard !isSaving else { return }
+        isSaving = true
+        defer { isSaving = false }
 
-        let saved: Wallet
-        if let w = wallet {
-            w.name = name
-            w.walletType = type
-            w.currency = currency
-            w.balance = balance
-            w.icon = type.defaultIcon
-            w.isSynced = false
-            saved = w
-        } else {
-            let w = Wallet(
-                userId: AuthService.shared.userId,
-                name: name,
-                type: type,
-                currency: currency,
-                balance: balance
-            )
-            modelContext.insert(w)
-            saved = w
+        guard let opening = try? AmountParser.parse(
+            openingBalanceText.trimmingCharacters(in: .whitespacesAndNewlines),
+            currency: currency, locale: AppLocale.current, allowNegative: true, allowZero: true) else {
+            saveError = LedgerErrorCopy.text(for: "invalid_amount")
+            return
         }
 
-        try? modelContext.save()
-
-        let snap = saved.snapshot()
-        let id = saved.id
-        let store = self.store
-        Task {
-            do {
-                try await SupabaseService.shared.saveWallet(snap)
-                await MainActor.run {
-                    guard let ctx = store.modelContext else { return }
-                    let desc = FetchDescriptor<Wallet>(predicate: #Predicate { $0.id == id })
-                    if let row = try? ctx.fetch(desc).first {
-                        row.isSynced = true
-                        try? ctx.save()
-                    }
-                }
-            } catch {
-                Log.warn("Wallet sync deferred")  // AppStore.syncPendingWallets() will retry on next launch
-            }
+        let draft = WalletDraft(id: wallet?.id ?? UUID(),
+                                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                                type: type,
+                                currency: currency,
+                                openingBalance: opening,
+                                icon: type.defaultIcon)
+        guard store.saveWallet(draft) else {
+            saveError = LedgerErrorCopy.text(for: store.lastWriteErrorCode)
+            return
         }
-
         dismiss()
     }
 }

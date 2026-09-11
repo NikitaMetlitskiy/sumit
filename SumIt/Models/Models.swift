@@ -17,6 +17,26 @@ struct ParsedTransaction: Equatable {
     var source: TransactionSource
     var walletName: String = ""
 
+    /// The exact amount as text, when it is known exactly — a user keystroke,
+    /// or (from Task 15) the AI contract's `amount_decimal`. Preferred over
+    /// `amount`, which cannot represent every entered value.
+    var amountExact: String? = nil
+    /// Set once the user has picked a wallet, so no name matching is needed.
+    var walletID: UUID? = nil
+    /// The exact quantity leaving or entering the wallet, in the wallet's own
+    /// currency. Required when the wallet's currency differs from `currency`.
+    var walletAmountExact: String? = nil
+    /// Transfers only: the wallet receiving the money, chosen by the user. The
+    /// parser may suggest a transfer; it never picks this.
+    var destinationWalletID: UUID? = nil
+    /// Transfers only: the exact quantity arriving, in the destination wallet's
+    /// currency. Required when that currency differs from the source's.
+    var destinationAmountExact: String? = nil
+    /// The valuation the user has seen and accepted on the card: a dated
+    /// quote, a manual rate, or explicitly none. `nil` means nothing was
+    /// chosen, which saves USD at identity and anything else without conversion.
+    var valuation: LedgerValuation? = nil
+
     static func == (lhs: ParsedTransaction, rhs: ParsedTransaction) -> Bool {
         lhs.id == rhs.id
     }
@@ -33,6 +53,10 @@ final class ChatMessage {
     var isSystemMessage: Bool
     var imageData: Data?
 
+    /// Which account this message belongs to. Retained chat must not follow the
+    /// device into another user's session.
+    var ownerID: String?
+
     var role: Role {
         get { Role(rawValue: roleRaw) ?? .assistant }
         set { roleRaw = newValue.rawValue }
@@ -42,14 +66,16 @@ final class ChatMessage {
         case user, assistant
     }
 
-    init(role: Role, content: String, linkedTransactionID: UUID? = nil, isSystemMessage: Bool = false, imageData: Data? = nil) {
-        self.id = UUID()
+    init(id: UUID = UUID(), role: Role, content: String, linkedTransactionID: UUID? = nil,
+         isSystemMessage: Bool = false, imageData: Data? = nil, ownerID: String? = nil) {
+        self.id = id
         self.roleRaw = role.rawValue
         self.content = content
         self.timestamp = .now
         self.linkedTransactionID = linkedTransactionID
         self.isSystemMessage = isSystemMessage
         self.imageData = imageData
+        self.ownerID = ownerID
     }
 }
 
@@ -64,6 +90,17 @@ final class Category {
     var isDefault: Bool
     var sortOrder: Int
 
+    // MARK: — Ledger V2 (additive)
+    /// Owner of a custom category. Bundled defaults stay local templates and
+    /// are not uploaded per user, so theirs stays nil.
+    var ownerID: String?
+    var serverRevision: Int64 = 0
+    var localGeneration: Int64 = 0
+    /// Archived rather than erased: historical transactions keep their label.
+    var deletedAt: Date?
+
+    var isArchived: Bool { deletedAt != nil }
+
     var color: Color { Color(hex: colorHex) ?? .blue }
 
     /// Localized display name for default categories; raw name for custom ones.
@@ -76,15 +113,17 @@ final class Category {
         return translated == key ? name : translated
     }
 
-    init(name: String, icon: String, colorHex: String,
-         type: String = "expense", isDefault: Bool = false, sortOrder: Int = 99) {
-        self.id = UUID()
+    init(id: UUID = UUID(), name: String, icon: String, colorHex: String,
+         type: String = "expense", isDefault: Bool = false, sortOrder: Int = 99,
+         ownerID: String? = nil) {
+        self.id = id
         self.name = name
         self.icon = icon
         self.colorHex = colorHex
         self.typeRaw = type
         self.isDefault = isDefault
         self.sortOrder = sortOrder
+        self.ownerID = ownerID
     }
 
     static var defaults: [Category] { [

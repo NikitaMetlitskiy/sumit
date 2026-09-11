@@ -154,24 +154,22 @@ struct ProfileEditView: View {
                         }
                     }
 
-                    // Reassign local-only rows to the authenticated uid before fetching cloud data.
-                    let uid = AuthService.shared.userId
-                    if let ctx = store.modelContext {
-                        let allTx = (try? ctx.fetch(FetchDescriptor<Transaction>())) ?? []
-                        for tx in allTx where tx.userId == "local" {
-                            tx.userId = uid
-                            tx.isSynced = false  // re-sync under the new owner
-                        }
-                        let allWallets = (try? ctx.fetch(FetchDescriptor<Wallet>())) ?? []
-                        for w in allWallets where w.userId == "local" {
-                            w.userId = uid
-                            w.isSynced = false
-                        }
-                        try? ctx.save()
-                    }
-                    await store.syncPendingTransactions()
-                    await store.syncPendingWallets()
-                    await store.restoreFromCloud()
+                    // Signing in no longer rewrites the owner of the
+                    // device-only rows. Handing whatever was recorded before
+                    // sign-in to whichever account happens to sign in next is a
+                    // guess about whose money it is, and it is not reversible
+                    // once those rows have been uploaded under that owner.
+                    //
+                    // They stay on the device under the `local` owner, hidden
+                    // from this account, and an issue records that they are
+                    // waiting. Task 18 provides the explicit import, where the
+                    // owner sees exactly what would move before it moves.
+                    store.recordLocalDataAwaitingImport(ownerID: AuthService.shared.userId)
+
+                    // The bounded, identity-based change feed, not the old
+                    // 1,000-row fetch that compared identifiers as strings and
+                    // duplicated every row Swift had written in uppercase.
+                    await store.syncNow()
                 } catch {
                     signInError = error.localizedDescription
                 }

@@ -4,43 +4,13 @@ import Foundation
 /// actors and the main actor without crossing isolation boundaries
 /// (matters under Swift 6's default-MainActor isolation).
 struct CurrencyService {
-    /// 1 USD = X foreign. Stablecoins pinned to 1; crypto rates are placeholders
-    /// — see `LiveRateLoader` (TODO) for daily refresh from a server endpoint.
-    /// Marked `nonisolated` so actors (BackendService.isSupported check) can read it.
-    nonisolated static let rates: [String: Double] = [
-        "USD":  1.0,
-        "EUR":  0.922,
-        "UAH":  41.5,
-        "GBP":  0.786,
-        "PLN":  4.08,
-        "CZK":  23.2,
-        "CAD":  1.36,
-        "CHF":  0.90,
-        "RUB":  92.0,
-        "KZT":  475.0,
-        "JPY":  155.0,
-        "USDC": 1.0,
-        "USDT": 1.0,
-        "BTC":  0.0000095,   // ~$105,000 / BTC placeholder
-        "ETH":  0.00028      // ~$3,500 / ETH placeholder
-    ]
-
-    /// Returns true if currency is known. Callers should reject saves with unknown currencies.
+    /// Whether the app records amounts in this currency. This is metadata
+    /// only — it says nothing about whether a rate is available. There is no
+    /// rate table here any more: the old one priced BTC at a hard-coded
+    /// $105,000, pinned stablecoins to exactly 1 and answered 1.0 for anything
+    /// it did not know. Rates now come only from dated quotes.
     nonisolated static func isSupported(_ currency: String) -> Bool {
-        rates[currency.uppercased()] != nil
-    }
-
-    nonisolated static func toUSD(_ currency: String) -> Double {
-        guard let r = rates[currency.uppercased()], r != 0 else { return 1.0 }
-        return 1.0 / r
-    }
-
-    nonisolated static func usdTo(_ currency: String) -> Double {
-        rates[currency.uppercased()] ?? 1.0
-    }
-
-    nonisolated static func convert(_ amount: Double, from: String, to: String) -> Double {
-        amount * toUSD(from) * usdTo(to)
+        MoneyPrecision.isSupported(currency)
     }
 
     /// Localized currency rows for pickers. Stays MainActor because it calls `L(_:)` —

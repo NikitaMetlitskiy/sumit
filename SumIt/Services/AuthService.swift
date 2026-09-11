@@ -23,6 +23,12 @@ final class AuthService: ObservableObject {
 
     @Published var isSignedIn: Bool = false
     @Published var userId: String = "local"
+
+    /// Changes on every sign-in, sign-out and user switch, and **only** then —
+    /// a token refresh for the same account keeps it. Scoped views rebuild on
+    /// it, and an in-flight request captures it so a response that arrives
+    /// after the account changed can be recognised and discarded.
+    @Published private(set) var scopeEpoch = UUID()
     @Published var userEmail: String? = nil
     @Published var userFullName: String? = nil
 
@@ -39,6 +45,9 @@ final class AuthService: ObservableObject {
         migrateLegacySession()
         restoreSession()
     }
+
+    /// Whose data the app is currently showing and syncing.
+    var currentScope: AccountScope { AccountScope(ownerID: userId, epoch: scopeEpoch) }
 
     /// Current access token (nil if not signed in)
     var accessToken: String? {
@@ -128,16 +137,20 @@ final class AuthService: ObservableObject {
 
         guard let session = loadSession(), session.isExpired else { return true }
 
+        // Captured before the network call. If the account changes while the
+        // refresh runs, its result is discarded rather than signing the
+        // previous user back in.
+        let epochAtStart = scopeEpoch
         let task = Task<Bool, Never> { [weak self] in
             guard let self else { return false }
             defer { Task { @MainActor in self.refreshTask = nil } }
-            return await self.performRefresh(session: session)
+            return await self.performRefresh(session: session, epoch: epochAtStart)
         }
         refreshTask = task
         return await task.value
     }
 
-    private func performRefresh(session: SupabaseSession) async -> Bool {
+    private func performRefresh(session: SupabaseSession, epoch: UUID) async -> Bool {
         guard let url = URL(string: "\(supabaseURL)/auth/v1/token?grant_type=refresh_token") else {
             return false
         }
@@ -150,6 +163,15 @@ final class AuthService: ObservableObject {
             req.httpBody = try JSONSerialization.data(withJSONObject: ["refresh_token": session.refreshToken])
 
             let (data, resp) = try await URLSession.shared.data(for: req)
+
+            // The account may have changed while this was in flight. A late
+            // answer for a previous account must not touch the current one —
+            // neither to sign it out nor to sign the old user back in.
+            guard scopeEpoch == epoch else {
+                Log.debug("Discarding refresh for a previous account")
+                return false
+            }
+
             guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
                 Log.warn("Token refresh failed — signing out")
                 signOut()
@@ -172,6 +194,7 @@ final class AuthService: ObservableObject {
                 email: session.email,
                 fullName: session.fullName
             )
+            guard scopeEpoch == epoch else { return false }
             saveSession(newSession)
             applySession(newSession)
             Log.debug("Token refreshed")
@@ -201,6 +224,9 @@ final class AuthService: ObservableObject {
         userId = "local"
         userEmail = nil
         userFullName = nil
+        // A new epoch invalidates every scoped view and every request that was
+        // already in flight for the account being left.
+        scopeEpoch = UUID()
         localDataWipe?()
         Log.info("Signed out")
     }
@@ -222,6 +248,13 @@ final class AuthService: ObservableObject {
     }
 
     // MARK: — Session persistence (Keychain)
+#if DEBUG
+    fileprivate func installForTesting(_ session: SupabaseSession) {
+        saveSession(session)
+        applySession(session)
+    }
+#endif
+
     private func saveSession(_ session: SupabaseSession) {
         guard let data = try? JSONEncoder().encode(session) else { return }
         KeychainHelper.set(data, for: sessionKey)
@@ -243,10 +276,14 @@ final class AuthService: ObservableObject {
     }
 
     private func applySession(_ session: SupabaseSession) {
+        // A refresh of the same account must not churn the epoch: scoped views
+        // would rebuild and in-flight work would be discarded for no reason.
+        let accountChanged = !isSignedIn || userId != session.userId
         isSignedIn = true
         userId = session.userId
         userEmail = session.email
         userFullName = session.fullName
+        if accountChanged { scopeEpoch = UUID() }
     }
 
     /// One-time move from UserDefaults to Keychain for users updating from a previous build.
@@ -335,6 +372,24 @@ final class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate,
         onComplete?(.failure(error))
     }
 }
+
+#if DEBUG
+// MARK: — Test seam
+/// Lets a test put a known session in place without going through Apple.
+/// The refresh path it exercises — an old account's response arriving after a
+/// different account became active — cannot be reached any other way, and the
+/// guard it verifies is the one preventing a signed-out user from being
+/// silently signed back in.
+extension AuthService {
+    func installSessionForTesting(userId: String, expiresAt: Date) {
+        let session = SupabaseSession(accessToken: "access-\(userId)",
+                                      refreshToken: "refresh-\(userId)",
+                                      expiresAt: expiresAt, userId: userId,
+                                      email: nil, fullName: nil)
+        installForTesting(session)
+    }
+}
+#endif
 
 // MARK: — Public helper to start a managed Apple sign-in from SwiftUI button
 /// SwiftUI `SignInWithAppleButton` requires us to set `request.nonce` ourselves;

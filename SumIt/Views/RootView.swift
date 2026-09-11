@@ -24,6 +24,9 @@ struct RootView: View {
                 .tabItem { Label(L("tab_settings"), systemImage: "gearshape") }
                 .tag(2)
         }
+        // Rebuilds every scoped view when the account changes, so no view can
+        // keep showing rows belonging to the previous owner.
+        .id(auth.scopeEpoch)
         .environment(\.locale, Locale(identifier: localization.current.rawValue))
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {

@@ -7,7 +7,51 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F3B0021D0000000000000000 /* report-valuation-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0011D0000000000000000 /* report-valuation-tests.swift */; };
+		F3B0021C0000000000000000 /* valuation-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0011C0000000000000000 /* valuation-tests.swift */; };
+		F3B0021B0000000000000000 /* report-valuation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0011B0000000000000000 /* report-valuation.swift */; };
+		F3B0021A0000000000000000 /* rate-service.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0011A0000000000000000 /* rate-service.swift */; };
+		F3B002190000000000000000 /* parse-contract-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001190000000000000000 /* parse-contract-tests.swift */; };
+		F3B002180000000000000000 /* parse-response-decoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001180000000000000000 /* parse-response-decoder.swift */; };
+		F3B002170000000000000000 /* ui-write-path-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001170000000000000000 /* ui-write-path-tests.swift */; };
+		F3B002160000000000000000 /* transaction-edit-sheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001160000000000000000 /* transaction-edit-sheet.swift */; };
+		F3B002150000000000000000 /* transaction-editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001150000000000000000 /* transaction-editor.swift */; };
+		F3B002140000000000000000 /* ledger-error-copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001140000000000000000 /* ledger-error-copy.swift */; };
+		F3B002130000000000000000 /* ledger-model-bridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001130000000000000000 /* ledger-model-bridge.swift */; };
+		F3B002120000000000000000 /* parsed-transaction-draft.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001120000000000000000 /* parsed-transaction-draft.swift */; };
+		F3B002110000000000000000 /* sync-issues-view.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001110000000000000000 /* sync-issues-view.swift */; };
+		F3B002100000000000000000 /* ledger-conflict-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001100000000000000000 /* ledger-conflict-tests.swift */; };
+		F3B0020F0000000000000000 /* account-scope-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0010F0000000000000000 /* account-scope-tests.swift */; };
+		F3A1092F0000000000000000 /* ledger-scope.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1091F0000000000000000 /* ledger-scope.swift */; };
+		F3A1082F0000000000000000 /* ledger-conflict-resolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1081F0000000000000000 /* ledger-conflict-resolution.swift */; };
+		F3B0020E0000000000000000 /* ledger-restore-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0010E0000000000000000 /* ledger-restore-tests.swift */; };
+		F3A1072F0000000000000000 /* ledger-pull-merge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1071F0000000000000000 /* ledger-pull-merge.swift */; };
+		F3B0020D0000000000000000 /* ledger-push-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0010D0000000000000000 /* ledger-push-tests.swift */; };
+		F3A1062F0000000000000000 /* ledger-sync-coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1061F0000000000000000 /* ledger-sync-coordinator.swift */; };
+		F3B0020C0000000000000000 /* supabase-transport-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0010C0000000000000000 /* supabase-transport-tests.swift */; };
+		F3B0020B0000000000000000 /* ledger-store-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0010B0000000000000000 /* ledger-store-tests.swift */; };
+		F3A1052F0000000000000000 /* ledger-store.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1051F0000000000000000 /* ledger-store.swift */; };
+		F3B0020A0000000000000000 /* chat-batch-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0010A0000000000000000 /* chat-batch-tests.swift */; };
+		F3B002090000000000000000 /* wallet-ledger-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001090000000000000000 /* wallet-ledger-tests.swift */; };
+		F3A1042F0000000000000000 /* wallet-ledger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1041F0000000000000000 /* wallet-ledger.swift */; };
+		F3B002080000000000000000 /* ledger-coding-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001080000000000000000 /* ledger-coding-tests.swift */; };
+		F3B002070000000000000000 /* ledger-schema-migration-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001070000000000000000 /* ledger-schema-migration-tests.swift */; };
+		F3A1012F0000000000000000 /* ledger-types.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1011F0000000000000000 /* ledger-types.swift */; };
+		F3A1022F0000000000000000 /* ledger-sync-models.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1021F0000000000000000 /* ledger-sync-models.swift */; };
+		F3A1032F0000000000000000 /* ledger-schema.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1031F0000000000000000 /* ledger-schema.swift */; };
+		F3C002010000000000000000 /* ledger-lifecycle-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C001010000000000000000 /* ledger-lifecycle-tests.swift */; };
+		F3B002060000000000000000 /* storage-bootstrap-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001060000000000000000 /* storage-bootstrap-tests.swift */; };
+		F3A000402F7C000000000000 /* storage-bootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A000401F7C000000000000 /* storage-bootstrap.swift */; };
+		F3A000502F7C000000000000 /* storage-recovery-view.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A000501F7C000000000000 /* storage-recovery-view.swift */; };
+		F3B002040000000000000000 /* ledger-test-support.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001040000000000000000 /* ledger-test-support.swift */; };
+		F3B002050000000000000000 /* baseline-store-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001050000000000000000 /* baseline-store-tests.swift */; };
+		F3B002010000000000000000 /* money-value-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001010000000000000000 /* money-value-tests.swift */; };
+		F3B002020000000000000000 /* amount-parser-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001020000000000000000 /* amount-parser-tests.swift */; };
+		F3B002030000000000000000 /* transaction-input-segmenter-tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B001030000000000000000 /* transaction-input-segmenter-tests.swift */; };
 		0C3AB58A07E99152FEEC66ED /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5844717431ECED7BEAA309E7 /* Formatters.swift */; };
+		F3A00102F7C0000000000000 /* money-value.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A00101F7C0000000000000 /* money-value.swift */; };
+		F3A00202F7C0000000000000 /* amount-parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A00201F7C0000000000000 /* amount-parser.swift */; };
+		F3A00302F7C0000000000000 /* transaction-input-segmenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A00301F7C0000000000000 /* transaction-input-segmenter.swift */; };
 		29FB5F64D306B7E4B9BF5AD2 /* PINSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EDA09A5159D0B2235152E0C /* PINSetupView.swift */; };
 		2DF5089CC33E0F083D402B83 /* SumItProducts.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 7E06D7C52EA1214A2BB6C650 /* SumItProducts.storekit */; };
 		3BD7F275C89F44AC8E3E1984 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB57AB428F3E8129335BFE6 /* Log.swift */; };
@@ -42,12 +86,75 @@
 		FA456E982EB2662EBE9C37DE /* SecurityHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF31B472B9C38E61B0FF5359 /* SecurityHelper.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		F3C0000B0000000000000000 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F32B11062F7457DB0087E901 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F32B110D2F7457DB0087E901;
+			remoteInfo = SumIt;
+		};
+		F3B0000B0000000000000000 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F32B11062F7457DB0087E901 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F32B110D2F7457DB0087E901;
+			remoteInfo = SumIt;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		F3B0011D0000000000000000 /* report-valuation-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "report-valuation-tests.swift"; sourceTree = "<group>"; };
+		F3B0011C0000000000000000 /* valuation-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "valuation-tests.swift"; sourceTree = "<group>"; };
+		F3B0011B0000000000000000 /* report-valuation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "report-valuation.swift"; sourceTree = "<group>"; };
+		F3B0011A0000000000000000 /* rate-service.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "rate-service.swift"; sourceTree = "<group>"; };
+		F3B001190000000000000000 /* parse-contract-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "parse-contract-tests.swift"; sourceTree = "<group>"; };
+		F3B001180000000000000000 /* parse-response-decoder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "parse-response-decoder.swift"; sourceTree = "<group>"; };
+		F3B001170000000000000000 /* ui-write-path-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ui-write-path-tests.swift"; sourceTree = "<group>"; };
+		F3B001160000000000000000 /* transaction-edit-sheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "transaction-edit-sheet.swift"; sourceTree = "<group>"; };
+		F3B001150000000000000000 /* transaction-editor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "transaction-editor.swift"; sourceTree = "<group>"; };
+		F3B001140000000000000000 /* ledger-error-copy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-error-copy.swift"; sourceTree = "<group>"; };
+		F3B001130000000000000000 /* ledger-model-bridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-model-bridge.swift"; sourceTree = "<group>"; };
+		F3B001120000000000000000 /* parsed-transaction-draft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "parsed-transaction-draft.swift"; sourceTree = "<group>"; };
+		F3B001110000000000000000 /* sync-issues-view.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "sync-issues-view.swift"; sourceTree = "<group>"; };
+		F3B001100000000000000000 /* ledger-conflict-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-conflict-tests.swift"; sourceTree = "<group>"; };
+		F3B0010F0000000000000000 /* account-scope-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "account-scope-tests.swift"; sourceTree = "<group>"; };
+		F3A1091F0000000000000000 /* ledger-scope.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-scope.swift"; sourceTree = "<group>"; };
+		F3A1081F0000000000000000 /* ledger-conflict-resolution.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-conflict-resolution.swift"; sourceTree = "<group>"; };
+		F3B0010E0000000000000000 /* ledger-restore-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-restore-tests.swift"; sourceTree = "<group>"; };
+		F3A1071F0000000000000000 /* ledger-pull-merge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-pull-merge.swift"; sourceTree = "<group>"; };
+		F3B0010D0000000000000000 /* ledger-push-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-push-tests.swift"; sourceTree = "<group>"; };
+		F3A1061F0000000000000000 /* ledger-sync-coordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-sync-coordinator.swift"; sourceTree = "<group>"; };
+		F3B0010C0000000000000000 /* supabase-transport-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "supabase-transport-tests.swift"; sourceTree = "<group>"; };
+		F3B0010B0000000000000000 /* ledger-store-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-store-tests.swift"; sourceTree = "<group>"; };
+		F3A1051F0000000000000000 /* ledger-store.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-store.swift"; sourceTree = "<group>"; };
+		F3B0010A0000000000000000 /* chat-batch-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "chat-batch-tests.swift"; sourceTree = "<group>"; };
+		F3B001090000000000000000 /* wallet-ledger-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "wallet-ledger-tests.swift"; sourceTree = "<group>"; };
+		F3A1041F0000000000000000 /* wallet-ledger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "wallet-ledger.swift"; sourceTree = "<group>"; };
+		F3B001080000000000000000 /* ledger-coding-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-coding-tests.swift"; sourceTree = "<group>"; };
+		F3B001070000000000000000 /* ledger-schema-migration-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-schema-migration-tests.swift"; sourceTree = "<group>"; };
+		F3A1011F0000000000000000 /* ledger-types.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-types.swift"; sourceTree = "<group>"; };
+		F3A1021F0000000000000000 /* ledger-sync-models.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-sync-models.swift"; sourceTree = "<group>"; };
+		F3A1031F0000000000000000 /* ledger-schema.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-schema.swift"; sourceTree = "<group>"; };
+		F3C001010000000000000000 /* ledger-lifecycle-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-lifecycle-tests.swift"; sourceTree = "<group>"; };
+		F3C000020000000000000000 /* SumItUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SumItUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3B001060000000000000000 /* storage-bootstrap-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "storage-bootstrap-tests.swift"; sourceTree = "<group>"; };
+		F3A000401F7C000000000000 /* storage-bootstrap.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "storage-bootstrap.swift"; sourceTree = "<group>"; };
+		F3A000501F7C000000000000 /* storage-recovery-view.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "storage-recovery-view.swift"; sourceTree = "<group>"; };
+		F3B001040000000000000000 /* ledger-test-support.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ledger-test-support.swift"; sourceTree = "<group>"; };
+		F3B001050000000000000000 /* baseline-store-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "baseline-store-tests.swift"; sourceTree = "<group>"; };
+		F3B001010000000000000000 /* money-value-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "money-value-tests.swift"; sourceTree = "<group>"; };
+		F3B001020000000000000000 /* amount-parser-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "amount-parser-tests.swift"; sourceTree = "<group>"; };
+		F3B001030000000000000000 /* transaction-input-segmenter-tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "transaction-input-segmenter-tests.swift"; sourceTree = "<group>"; };
+		F3B000020000000000000000 /* SumItTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SumItTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		036909C11919C45EE7E76377 /* ImageProcessor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImageProcessor.swift; sourceTree = "<group>"; };
 		0A537C8E765DC2C8000D6B44 /* SumIt.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = SumIt.entitlements; sourceTree = "<group>"; };
 		3217D442944D80BCC40429D1 /* ProfileEditView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileEditView.swift; sourceTree = "<group>"; };
 		489A7FE199841D6B7D3AD379 /* KeychainHelper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		5844717431ECED7BEAA309E7 /* Formatters.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		F3A00101F7C0000000000000 /* money-value.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "money-value.swift"; sourceTree = "<group>"; };
+		F3A00201F7C0000000000000 /* amount-parser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "amount-parser.swift"; sourceTree = "<group>"; };
+		F3A00301F7C0000000000000 /* transaction-input-segmenter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "transaction-input-segmenter.swift"; sourceTree = "<group>"; };
 		7E06D7C52EA1214A2BB6C650 /* SumItProducts.storekit */ = {isa = PBXFileReference; includeInIndex = 1; path = SumItProducts.storekit; sourceTree = "<group>"; };
 		7FB57AB428F3E8129335BFE6 /* Log.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		94EFE81EBB57B729389A0A2D /* AppConfig.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
@@ -81,6 +188,20 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		F3C000050000000000000000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F3B000050000000000000000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F32B110B2F7457DB0087E901 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -91,6 +212,41 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F3C000030000000000000000 /* SumItUITests */ = {
+			isa = PBXGroup;
+			children = (
+				F3C001010000000000000000 /* ledger-lifecycle-tests.swift */,
+			);
+			path = SumItUITests;
+			sourceTree = "<group>";
+		};
+		F3B000030000000000000000 /* SumItTests */ = {
+			isa = PBXGroup;
+			children = (
+				F3B001010000000000000000 /* money-value-tests.swift */,
+				F3B0011D0000000000000000 /* report-valuation-tests.swift */,
+				F3B0011C0000000000000000 /* valuation-tests.swift */,
+				F3B001190000000000000000 /* parse-contract-tests.swift */,
+				F3B001170000000000000000 /* ui-write-path-tests.swift */,
+				F3B001100000000000000000 /* ledger-conflict-tests.swift */,
+				F3B0010F0000000000000000 /* account-scope-tests.swift */,
+				F3B0010E0000000000000000 /* ledger-restore-tests.swift */,
+				F3B0010D0000000000000000 /* ledger-push-tests.swift */,
+				F3B0010C0000000000000000 /* supabase-transport-tests.swift */,
+				F3B0010B0000000000000000 /* ledger-store-tests.swift */,
+				F3B0010A0000000000000000 /* chat-batch-tests.swift */,
+				F3B001090000000000000000 /* wallet-ledger-tests.swift */,
+				F3B001080000000000000000 /* ledger-coding-tests.swift */,
+				F3B001070000000000000000 /* ledger-schema-migration-tests.swift */,
+				F3B001060000000000000000 /* storage-bootstrap-tests.swift */,
+				F3B001040000000000000000 /* ledger-test-support.swift */,
+				F3B001050000000000000000 /* baseline-store-tests.swift */,
+				F3B001020000000000000000 /* amount-parser-tests.swift */,
+				F3B001030000000000000000 /* transaction-input-segmenter-tests.swift */,
+			);
+			path = SumItTests;
+			sourceTree = "<group>";
+		};
 		F30FB7C92F752A8F00880078 /* Reports */ = {
 			isa = PBXGroup;
 			children = (
@@ -122,6 +278,8 @@
 			isa = PBXGroup;
 			children = (
 				F32B111E2F7459C10087E901 /* SumIt */,
+				F3B000030000000000000000 /* SumItTests */,
+				F3C000030000000000000000 /* SumItUITests */,
 				F32B110F2F7457DB0087E901 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,6 +288,8 @@
 			isa = PBXGroup;
 			children = (
 				F32B110E2F7457DB0087E901 /* SumIt.app */,
+				F3B000020000000000000000 /* SumItTests.xctest */,
+				F3C000020000000000000000 /* SumItUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -152,6 +312,9 @@
 		F32B111F2F745AC30087E901 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				F3A1011F0000000000000000 /* ledger-types.swift */,
+				F3A1021F0000000000000000 /* ledger-sync-models.swift */,
+				F3A1031F0000000000000000 /* ledger-schema.swift */,
 				F321F07B2F7BE1430072D978 /* Models.swift */,
 				F321F07C2F7BE1430072D978 /* Transaction.swift */,
 				F31E903D2F7C04000034D0AF /* Wallet.swift */,
@@ -176,6 +339,23 @@
 				036909C11919C45EE7E76377 /* ImageProcessor.swift */,
 				5844717431ECED7BEAA309E7 /* Formatters.swift */,
 				94EFE81EBB57B729389A0A2D /* AppConfig.swift */,
+				F3A1091F0000000000000000 /* ledger-scope.swift */,
+				F3A1081F0000000000000000 /* ledger-conflict-resolution.swift */,
+				F3A1071F0000000000000000 /* ledger-pull-merge.swift */,
+				F3A1061F0000000000000000 /* ledger-sync-coordinator.swift */,
+				F3A1051F0000000000000000 /* ledger-store.swift */,
+				F3A1041F0000000000000000 /* wallet-ledger.swift */,
+				F3B0011B0000000000000000 /* report-valuation.swift */,
+				F3B0011A0000000000000000 /* rate-service.swift */,
+				F3B001180000000000000000 /* parse-response-decoder.swift */,
+				F3B001150000000000000000 /* transaction-editor.swift */,
+				F3B001140000000000000000 /* ledger-error-copy.swift */,
+				F3B001130000000000000000 /* ledger-model-bridge.swift */,
+				F3B001120000000000000000 /* parsed-transaction-draft.swift */,
+				F3A000401F7C000000000000 /* storage-bootstrap.swift */,
+				F3A00101F7C0000000000000 /* money-value.swift */,
+				F3A00201F7C0000000000000 /* amount-parser.swift */,
+				F3A00301F7C0000000000000 /* transaction-input-segmenter.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -194,6 +374,9 @@
 				F321F0602F7BE03A0072D978 /* RootView.swift */,
 				F31E903B2F7C03100034D0AF /* PaywallView.swift */,
 				F31E903F2F7C04100034D0AF /* WalletViews.swift */,
+				F3A000501F7C000000000000 /* storage-recovery-view.swift */,
+				F3B001160000000000000000 /* transaction-edit-sheet.swift */,
+				F3B001110000000000000000 /* sync-issues-view.swift */,
 				F321F06D2F7BE0D50072D978 /* Auth */,
 				F30FB7E82F75CD5400880078 /* Settings */,
 				F30FB7C92F752A8F00880078 /* Reports */,
@@ -215,6 +398,42 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		F3C000010000000000000000 /* SumItUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F3C000070000000000000000 /* Build configuration list for PBXNativeTarget "SumItUITests" */;
+			buildPhases = (
+				F3C000040000000000000000 /* Sources */,
+				F3C000050000000000000000 /* Frameworks */,
+				F3C000060000000000000000 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F3C0000A0000000000000000 /* PBXTargetDependency */,
+			);
+			name = SumItUITests;
+			productName = SumItUITests;
+			productReference = F3C000020000000000000000 /* SumItUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		F3B000010000000000000000 /* SumItTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F3B000070000000000000000 /* Build configuration list for PBXNativeTarget "SumItTests" */;
+			buildPhases = (
+				F3B000040000000000000000 /* Sources */,
+				F3B000050000000000000000 /* Frameworks */,
+				F3B000060000000000000000 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F3B0000A0000000000000000 /* PBXTargetDependency */,
+			);
+			name = SumItTests;
+			productName = SumItTests;
+			productReference = F3B000020000000000000000 /* SumItTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		F32B110D2F7457DB0087E901 /* SumIt */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F32B111B2F7457DE0087E901 /* Build configuration list for PBXNativeTarget "SumIt" */;
@@ -245,6 +464,14 @@
 					F32B110D2F7457DB0087E901 = {
 						CreatedOnToolsVersion = 26.4;
 					};
+					F3B000010000000000000000 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = F32B110D2F7457DB0087E901;
+					};
+					F3C000010000000000000000 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = F32B110D2F7457DB0087E901;
+					};
 				};
 			};
 			buildConfigurationList = F32B11092F7457DB0087E901 /* Build configuration list for PBXProject "SumIt" */;
@@ -262,11 +489,27 @@
 			projectRoot = "";
 			targets = (
 				F32B110D2F7457DB0087E901 /* SumIt */,
+				F3B000010000000000000000 /* SumItTests */,
+				F3C000010000000000000000 /* SumItUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		F3C000060000000000000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F3B000060000000000000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F32B110C2F7457DB0087E901 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -279,6 +522,41 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		F3C000040000000000000000 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F3C002010000000000000000 /* ledger-lifecycle-tests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F3B000040000000000000000 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F3B002010000000000000000 /* money-value-tests.swift in Sources */,
+				F3B0021D0000000000000000 /* report-valuation-tests.swift in Sources */,
+				F3B0021C0000000000000000 /* valuation-tests.swift in Sources */,
+				F3B002190000000000000000 /* parse-contract-tests.swift in Sources */,
+				F3B002170000000000000000 /* ui-write-path-tests.swift in Sources */,
+				F3B002100000000000000000 /* ledger-conflict-tests.swift in Sources */,
+				F3B0020F0000000000000000 /* account-scope-tests.swift in Sources */,
+				F3B0020E0000000000000000 /* ledger-restore-tests.swift in Sources */,
+				F3B0020D0000000000000000 /* ledger-push-tests.swift in Sources */,
+				F3B0020C0000000000000000 /* supabase-transport-tests.swift in Sources */,
+				F3B0020B0000000000000000 /* ledger-store-tests.swift in Sources */,
+				F3B0020A0000000000000000 /* chat-batch-tests.swift in Sources */,
+				F3B002090000000000000000 /* wallet-ledger-tests.swift in Sources */,
+				F3B002080000000000000000 /* ledger-coding-tests.swift in Sources */,
+				F3B002070000000000000000 /* ledger-schema-migration-tests.swift in Sources */,
+				F3B002060000000000000000 /* storage-bootstrap-tests.swift in Sources */,
+				F3B002040000000000000000 /* ledger-test-support.swift in Sources */,
+				F3B002050000000000000000 /* baseline-store-tests.swift in Sources */,
+				F3B002020000000000000000 /* amount-parser-tests.swift in Sources */,
+				F3B002030000000000000000 /* transaction-input-segmenter-tests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F32B110A2F7457DB0087E901 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -313,13 +591,135 @@
 				3BD7F275C89F44AC8E3E1984 /* Log.swift in Sources */,
 				53F2547CD1980ECA45FD9A4B /* ImageProcessor.swift in Sources */,
 				0C3AB58A07E99152FEEC66ED /* Formatters.swift in Sources */,
+				F3A1092F0000000000000000 /* ledger-scope.swift in Sources */,
+				F3A1082F0000000000000000 /* ledger-conflict-resolution.swift in Sources */,
+				F3A1072F0000000000000000 /* ledger-pull-merge.swift in Sources */,
+				F3A1062F0000000000000000 /* ledger-sync-coordinator.swift in Sources */,
+				F3A1052F0000000000000000 /* ledger-store.swift in Sources */,
+				F3A1042F0000000000000000 /* wallet-ledger.swift in Sources */,
+				F3B0021B0000000000000000 /* report-valuation.swift in Sources */,
+				F3B0021A0000000000000000 /* rate-service.swift in Sources */,
+				F3B002180000000000000000 /* parse-response-decoder.swift in Sources */,
+				F3B002150000000000000000 /* transaction-editor.swift in Sources */,
+				F3B002140000000000000000 /* ledger-error-copy.swift in Sources */,
+				F3B002120000000000000000 /* parsed-transaction-draft.swift in Sources */,
+				F3B002130000000000000000 /* ledger-model-bridge.swift in Sources */,
+				F3A1012F0000000000000000 /* ledger-types.swift in Sources */,
+				F3A1022F0000000000000000 /* ledger-sync-models.swift in Sources */,
+				F3A1032F0000000000000000 /* ledger-schema.swift in Sources */,
+				F3A000402F7C000000000000 /* storage-bootstrap.swift in Sources */,
+				F3A000502F7C000000000000 /* storage-recovery-view.swift in Sources */,
+				F3B002160000000000000000 /* transaction-edit-sheet.swift in Sources */,
+				F3B002110000000000000000 /* sync-issues-view.swift in Sources */,
+				F3A00102F7C0000000000000 /* money-value.swift in Sources */,
+				F3A00202F7C0000000000000 /* amount-parser.swift in Sources */,
+				F3A00302F7C0000000000000 /* transaction-input-segmenter.swift in Sources */,
 				47D417EC2CEE9591FAB98ED7 /* AppConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		F3C0000A0000000000000000 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F32B110D2F7457DB0087E901 /* SumIt */;
+			targetProxy = F3C0000B0000000000000000 /* PBXContainerItemProxy */;
+		};
+		F3B0000A0000000000000000 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F32B110D2F7457DB0087E901 /* SumIt */;
+			targetProxy = F3B0000B0000000000000000 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		F3C000080000000000000000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J98SU5UHZZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mykyta.SumIt.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SumIt;
+			};
+			name = Debug;
+		};
+		F3C000090000000000000000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J98SU5UHZZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mykyta.SumIt.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SumIt;
+			};
+			name = Release;
+		};
+		F3B000080000000000000000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J98SU5UHZZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mykyta.SumIt.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SumIt.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SumIt";
+			};
+			name = Debug;
+		};
+		F3B000090000000000000000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J98SU5UHZZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mykyta.SumIt.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SumIt.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SumIt";
+			};
+			name = Release;
+		};
 		F32B11192F7457DE0087E901 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -524,6 +924,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		F3C000070000000000000000 /* Build configuration list for PBXNativeTarget "SumItUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F3C000080000000000000000 /* Debug */,
+				F3C000090000000000000000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F3B000070000000000000000 /* Build configuration list for PBXNativeTarget "SumItTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F3B000080000000000000000 /* Debug */,
+				F3B000090000000000000000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		F32B11092F7457DB0087E901 /* Build configuration list for PBXProject "SumIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

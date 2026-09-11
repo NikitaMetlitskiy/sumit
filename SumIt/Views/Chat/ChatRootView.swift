@@ -4,8 +4,13 @@ import SwiftData
 struct ChatRootView: View {
     @ObservedObject var store: AppStore
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \ChatMessage.timestamp, order: .forward) var messages: [ChatMessage]
-    @Query(sort: \Transaction.occurredAt, order: .reverse) var allTx: [Transaction]
+    @Query(sort: \ChatMessage.timestamp, order: .forward) private var allMessages: [ChatMessage]
+    @Query(sort: \Transaction.occurredAt, order: .reverse) private var storedTx: [Transaction]
+    @ObservedObject private var auth = AuthService.shared
+
+    /// Only this account's rows, and only the ones that are not deleted.
+    var messages: [ChatMessage] { LedgerScope.visibleMessages(allMessages, ownerID: auth.userId) }
+    var allTx: [Transaction] { LedgerScope.activeTransactions(storedTx, ownerID: auth.userId) }
     @StateObject private var vm = ChatViewModel()
     @ObservedObject private var localization = LocalizationManager.shared
     @ObservedObject private var storeKit = StoreKitManager.shared
@@ -197,7 +202,10 @@ struct ChatRootView: View {
 
     private func insertWelcomeIfNeeded() {
         guard messages.isEmpty else { return }
-        let w = ChatMessage(role: .assistant, content: L("chat_welcome"))
+        // Stamped with the owner. Without this the welcome message is invisible
+        // to a signed-in user and gets re-inserted on every launch.
+        let w = ChatMessage(role: .assistant, content: L("chat_welcome"),
+                            ownerID: AuthService.shared.userId)
         modelContext.insert(w)
         try? modelContext.save()
     }
@@ -323,101 +331,6 @@ struct TypingIndicatorView: View {
             Spacer(minLength: 50)
         }
         .onAppear { animated = true }
-    }
-}
-
-// MARK: — Edit Saved Transaction Sheet
-struct EditTransactionSheet: View {
-    @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) var dismiss
-    let transaction: Transaction
-    let store: AppStore
-
-    @State private var amount: String = ""
-    @State private var currency: String = "UAH"
-    @State private var categoryName: String = ""
-    @State private var merchant: String = ""
-    @State private var note: String = ""
-    @State private var date: Date = .now
-    @State private var type: TransactionType = .expense
-
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(L("type_label")) {
-                    Picker(L("type_label"), selection: $type) {
-                        ForEach(TransactionType.allCases, id: \.self) { Text($0.label).tag($0) }
-                    }.pickerStyle(.segmented)
-                }
-                Section(L("amount_currency")) {
-                    HStack {
-                        TextField("0", text: $amount)
-                            .keyboardType(.decimalPad)
-                            .font(.system(size: 17, weight: .medium))
-                        Spacer()
-                        Picker("", selection: $currency) {
-                            ForEach(CurrencyService.supported, id: \.code) { c in
-                                Text("\(c.flag) \(c.code)").tag(c.code)
-                            }
-                        }.pickerStyle(.menu)
-                    }
-                }
-                Section(L("details")) {
-                    TextField(L("merchant_store"), text: $merchant)
-                    TextField(L("note_optional"), text: $note)
-                    DatePicker(L("date"), selection: $date, displayedComponents: [.date])
-                }
-                Section(L("category")) {
-                    Picker(L("category"), selection: $categoryName) {
-                        ForEach(store.allCategories, id: \.name) { cat in
-                            Label(cat.displayName, systemImage: cat.icon).tag(cat.name)
-                        }
-                    }
-                }
-            }
-            .navigationTitle(L("edit"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button(L("cancel")) { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(L("save")) { save() }.fontWeight(.semibold)
-                }
-            }
-            .onAppear {
-                amount = String(format: "%.0f", transaction.originalAmount)
-                currency = transaction.originalCurrency
-                categoryName = transaction.categoryName
-                merchant = transaction.merchant == "Unknown" ? "" : transaction.merchant
-                note = transaction.note
-                date = transaction.occurredAt
-                type = transaction.type
-            }
-        }
-    }
-
-    private func save() {
-        let newAmount = Double(amount.replacingOccurrences(of: ",", with: ".")) ?? transaction.originalAmount
-
-        // Atomic edit: reverses old wallet delta, applies new, recomputes rate, queues re-sync.
-        store.editTransaction(transaction) { tx in
-            tx.typeRaw = type.rawValue
-            tx.originalAmount = newAmount
-            tx.originalCurrency = currency
-            tx.categoryName = categoryName.isEmpty ? tx.categoryName : categoryName
-            tx.merchant = merchant
-            tx.note = note
-            tx.occurredAt = date
-        }
-
-        // Update linked chat bubble through the single formatter source-of-truth.
-        let desc = FetchDescriptor<ChatMessage>()
-        if let msgs = try? modelContext.fetch(desc),
-           let msg = msgs.first(where: { $0.linkedTransactionID == transaction.id }) {
-            msg.content = ChatViewModel.formatSavedReceipt(tx: transaction, store: store)
-            try? modelContext.save()
-        }
-
-        dismiss()
     }
 }
 
