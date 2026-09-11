@@ -10,7 +10,7 @@ import Foundation
 /// `1,000` is 1000 in en-US and 1 in de-DE. The alternative decimal separator
 /// is accepted only when it cannot be valid grouping for that locale, so
 /// `12,50` in en-US is 12.5 while `1,23,456` stays a validation error.
-enum AmountParser {
+nonisolated enum AmountParser {
 
     /// Separators accepted as digit grouping whenever the locale groups with a
     /// space: ordinary space, no-break space, narrow no-break space, thin space.
@@ -156,7 +156,7 @@ enum AmountParser {
     }
 }
 
-extension MoneyCodec {
+nonisolated extension MoneyCodec {
     /// Decodes text this file has already reduced to canonical digits.
     /// Kept separate from `decode` so parser failures stay `nil` rather than
     /// throwing across the interpretation attempts.

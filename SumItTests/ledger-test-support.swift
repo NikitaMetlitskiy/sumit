@@ -8,7 +8,7 @@ import XCTest
 /// Static identifiers from acceptance-tests.md §1. Owner IDs for pure local
 /// tests are fixed strings with UUID syntax; SQL/auth suites must instead use
 /// accounts actually created in the disposable staging project.
-enum LedgerIDs {
+nonisolated enum LedgerIDs {
     static let ownerA = "10000000-0000-4000-8000-00000000000a"
     static let ownerB = "10000000-0000-4000-8000-00000000000b"
 
@@ -35,7 +35,7 @@ enum LedgerIDs {
 /// A sorted, Codable value record of everything in a store. Comparing two of
 /// these is how a test proves that reopening, migrating or replaying changed
 /// nothing. It deliberately holds no live model references.
-struct StoreSnapshot: Codable, Equatable {
+nonisolated struct StoreSnapshot: Codable, Equatable {
 
     struct TransactionRecord: Codable, Equatable {
         var id: String
@@ -331,7 +331,7 @@ final class PersistentStoreFixture {
 
 /// URLProtocol stub for transport tests. Install it on an **ephemeral**
 /// configuration so no unit test can reach the network or a real credential.
-final class StubURLProtocol: URLProtocol, @unchecked Sendable {
+nonisolated final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 
     struct Response: Sendable {
         var statusCode: Int
@@ -545,7 +545,7 @@ extension PersistentStoreFixture {
 /// Every builder parses its amounts through `MoneyCodec` and **throws** on
 /// invalid data, so a typo in a fixture fails loudly instead of quietly
 /// becoming a different number.
-enum LedgerFixtures {
+nonisolated enum LedgerFixtures {
 
     static func wallet(id: UUID, currency: String, opening: String) throws -> WalletDraft {
         WalletDraft(id: id,
@@ -604,4 +604,29 @@ enum LedgerFixtures {
          LedgerIDs.walletB: WalletDescriptor(id: LedgerIDs.walletB, ownerID: LedgerIDs.ownerA,
                                              currency: "USD", isArchived: false)]
     }
+}
+
+// MARK: — Boxes for values a @Sendable closure changes
+
+/// A counter a fake transport's closure can advance. A plain captured `var`
+/// mutated from a `@Sendable` closure is a data race the compiler rejects in
+/// the Swift 6 language mode.
+nonisolated final class TestCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: Int64
+
+    init(_ start: Int64 = 0) { self.value = start }
+
+    @discardableResult
+    func next() -> Int64 { lock.withLock { value += 1; return value } }
+    var current: Int64 { lock.withLock { value } }
+}
+
+/// A one-way flag a closure can set and a predicate can read.
+nonisolated final class TestFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var raised = false
+
+    func raise() { lock.withLock { raised = true } }
+    var isRaised: Bool { lock.withLock { raised } }
 }

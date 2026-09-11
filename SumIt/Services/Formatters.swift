@@ -41,7 +41,7 @@ enum Formatters {
     static func exactAmount(_ canonical: String, currency: String? = nil) -> String {
         refreshIfNeeded()
         let separator = cachedLocale.decimalSeparator ?? "."
-        var parts = canonical.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
+        let parts = canonical.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
         var integer = String(parts.first ?? "0")
         let isNegative = integer.hasPrefix("-")
         if isNegative { integer.removeFirst() }

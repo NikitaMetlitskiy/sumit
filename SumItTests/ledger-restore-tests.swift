@@ -30,7 +30,7 @@ final class LedgerRestoreTests: XCTestCase {
         }
 
         func setPage(after: Int64, _ page: LedgerChangePage) {
-            lock.lock(); pages["\(after)"] = page; lock.unlock()
+            lock.withLock { pages["\(after)"] = page }
         }
 
         func applyLedgerMutation(_ request: LedgerMutationRequest,
@@ -40,11 +40,10 @@ final class LedgerRestoreTests: XCTestCase {
 
         func readLedgerChanges(after: Int64, through: Int64?, limit: Int,
                                scope: AccountScope) async throws -> LedgerChangePage {
-            lock.lock()
-            recorded.append((after, through))
-            let page = pages["\(after)"]
-            let failure = self.failure
-            lock.unlock()
+            let (page, failure) = lock.withLock {
+                recorded.append((after, through))
+                return (pages["\(after)"], self.failure)
+            }
             if let failure { throw failure }
             guard let page else { throw LedgerTransportError.unknownOutcome }
             return page

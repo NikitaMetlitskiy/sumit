@@ -6,7 +6,7 @@ import Foundation
 /// sign-in, sign-out and user switch, so a response that comes back after the
 /// account changed can be recognised and discarded instead of being applied to
 /// the new account.
-struct AccountScope: Equatable, Sendable {
+nonisolated struct AccountScope: Equatable, Sendable {
     let ownerID: String
     let epoch: UUID
 
@@ -18,17 +18,17 @@ struct AccountScope: Equatable, Sendable {
 
 // MARK: — Enumerations shared by storage and the wire
 
-enum LedgerEntityKind: String, Codable, Sendable, CaseIterable {
+nonisolated enum LedgerEntityKind: String, Codable, Sendable, CaseIterable {
     case transaction, wallet, category
 }
 
-enum LedgerAction: String, Codable, Sendable, CaseIterable {
+nonisolated enum LedgerAction: String, Codable, Sendable, CaseIterable {
     case put, delete
 }
 
 /// Whether a transaction's USD value is known, absent, or inherited from the
 /// pre-ledger app and therefore not verifiable.
-enum ValuationState: String, Codable, Sendable, CaseIterable {
+nonisolated enum ValuationState: String, Codable, Sendable, CaseIterable {
     case unvalued
     case valued
     case legacyUnverified = "legacy_unverified"
@@ -36,14 +36,14 @@ enum ValuationState: String, Codable, Sendable, CaseIterable {
 
 /// Whether a row has been through adoption or is still an unreconciled record
 /// from before the ledger protocol.
-enum LedgerMigrationState: String, Codable, Sendable, CaseIterable {
+nonisolated enum LedgerMigrationState: String, Codable, Sendable, CaseIterable {
     case legacy
     case adopted
 }
 
 /// How a rate was arrived at. `identity` is USD at rate 1; `manual` is a rate
 /// the user confirmed; the two reference kinds come from a provider quote.
-enum ValuationKind: String, Codable, Sendable, CaseIterable {
+nonisolated enum ValuationKind: String, Codable, Sendable, CaseIterable {
     case identity
     case manual
     case currentReference = "current_reference"
@@ -54,7 +54,7 @@ enum ValuationKind: String, Codable, Sendable, CaseIterable {
 
 /// A dated exchange rate with its provenance. The same shape is used locally,
 /// by `/api/rates` and inside remote snapshots.
-struct RateQuote: Equatable, Sendable {
+nonisolated struct RateQuote: Equatable, Sendable {
     /// Server-issued identifier of the immutable cache row. Absent for identity
     /// and manual quotes, required for provider quotes.
     var id: UUID?
@@ -79,7 +79,7 @@ struct RateQuote: Equatable, Sendable {
     }
 }
 
-extension RateQuote: Codable {
+nonisolated extension RateQuote: Codable {
     private enum CodingKeys: String, CodingKey {
         case id = "quote_id"
         case currency
@@ -130,7 +130,7 @@ extension RateQuote: Codable {
 }
 
 /// Whether and how a transaction's USD value is established.
-enum LedgerValuation: Equatable, Sendable {
+nonisolated enum LedgerValuation: Equatable, Sendable {
     case unvalued
     case quoted(RateQuote)
     /// Numbers inherited from before the ledger protocol. Preserved exactly,
@@ -154,7 +154,7 @@ enum LedgerValuation: Equatable, Sendable {
 
 /// A transaction as the user intends it, before it is applied to the store.
 /// Editors hold one of these, never a partially mutated live SwiftData object.
-struct TransactionDraft: Sendable, Equatable {
+nonisolated struct TransactionDraft: Sendable, Equatable {
     let id: UUID
     var type: TransactionType
     var amount: Decimal
@@ -173,7 +173,7 @@ struct TransactionDraft: Sendable, Equatable {
     var valuation: LedgerValuation
 }
 
-struct WalletDraft: Sendable, Equatable {
+nonisolated struct WalletDraft: Sendable, Equatable {
     let id: UUID
     var name: String
     var type: WalletType
@@ -183,7 +183,7 @@ struct WalletDraft: Sendable, Equatable {
     var icon: String
 }
 
-struct CategoryDraft: Sendable, Equatable {
+nonisolated struct CategoryDraft: Sendable, Equatable {
     let id: UUID
     var name: String
     var icon: String
@@ -196,14 +196,14 @@ struct CategoryDraft: Sendable, Equatable {
 
 /// Proof that a local command reached disk. Returned only after a successful
 /// save, so a caller can never mistake a failure for a success.
-struct LocalSaveReceipt: Equatable, Sendable {
+nonisolated struct LocalSaveReceipt: Equatable, Sendable {
     let entityID: UUID
     let operationID: UUID
     let generation: Int64
 }
 
 /// The parts of a wallet a calculation needs, with no live model reference.
-struct WalletDescriptor: Sendable, Equatable {
+nonisolated struct WalletDescriptor: Sendable, Equatable {
     let id: UUID
     let ownerID: String
     let currency: String
@@ -211,7 +211,7 @@ struct WalletDescriptor: Sendable, Equatable {
 }
 
 /// One signed effect a transaction has on one wallet, in that wallet's currency.
-struct WalletEffect: Equatable, Sendable {
+nonisolated struct WalletEffect: Equatable, Sendable {
     let walletID: UUID
     let signedAmount: Decimal
 }
@@ -220,7 +220,7 @@ struct WalletEffect: Equatable, Sendable {
 
 /// A server cursor or entity revision. Nonnegative, bounded, and carried on the
 /// wire as a decimal **string** so no JSON parser can coerce it into a float.
-struct LedgerCursor: Codable, Equatable, Comparable, Sendable {
+nonisolated struct LedgerCursor: Codable, Equatable, Comparable, Sendable {
     let value: Int64
 
     init(_ value: Int64) throws {
@@ -251,7 +251,7 @@ struct LedgerCursor: Codable, Equatable, Comparable, Sendable {
 
 // MARK: — Coding errors and helpers
 
-enum LedgerCodingError: Error, Equatable {
+nonisolated enum LedgerCodingError: Error, Equatable {
     case malformedCursor
     case cursorOutOfRange
     case malformedDecimal(field: String)
@@ -262,7 +262,7 @@ enum LedgerCodingError: Error, Equatable {
     case unexpectedStatus(String)
 }
 
-enum LedgerCoding {
+nonisolated enum LedgerCoding {
     /// ISO 8601 with an explicit timezone, matching the wire contract.
     nonisolated(unsafe) private static let formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -320,7 +320,7 @@ enum LedgerCoding {
 
 /// A JSON value carried verbatim. Used for provider metadata so `source_detail`
 /// reaches the wire as an object rather than as an accidental base64 blob.
-enum JSONValue: Codable, Equatable, Sendable {
+nonisolated enum JSONValue: Codable, Equatable, Sendable {
     case null
     case bool(Bool)
     case number(Decimal)
@@ -356,7 +356,7 @@ enum JSONValue: Codable, Equatable, Sendable {
 
 /// The transaction fields a `put` carries. Header fields (identity, owner,
 /// revision, timestamps) are not part of the record: the server owns them.
-struct TransactionRecordV1: Codable, Equatable, Sendable {
+nonisolated struct TransactionRecordV1: Codable, Equatable, Sendable {
     var type: String
     var originalAmount: String
     var originalCurrency: String
@@ -465,7 +465,7 @@ struct TransactionRecordV1: Codable, Equatable, Sendable {
     }
 }
 
-struct WalletRecordV1: Codable, Equatable, Sendable {
+nonisolated struct WalletRecordV1: Codable, Equatable, Sendable {
     var name: String
     var type: String
     var currency: String
@@ -493,7 +493,7 @@ struct WalletRecordV1: Codable, Equatable, Sendable {
     }
 }
 
-struct CategoryRecordV1: Codable, Equatable, Sendable {
+nonisolated struct CategoryRecordV1: Codable, Equatable, Sendable {
     var name: String
     var icon: String
     var colorHex: String
@@ -512,7 +512,7 @@ struct CategoryRecordV1: Codable, Equatable, Sendable {
 
 /// The record a request carries, chosen by the request's `entity_kind`.
 /// It encodes as the bare payload object; the tag lives at the top level.
-enum LedgerRecord: Equatable, Sendable {
+nonisolated enum LedgerRecord: Equatable, Sendable {
     case transaction(TransactionRecordV1)
     case wallet(WalletRecordV1)
     case category(CategoryRecordV1)
@@ -547,7 +547,7 @@ enum LedgerRecord: Equatable, Sendable {
 /// One immutable command. Once dispatch begins these bytes are frozen: a retry
 /// replays the identical payload under the identical operation ID, which is
 /// what makes the server's receipt able to answer "did my write land?".
-struct LedgerMutationRequest: Equatable, Sendable {
+nonisolated struct LedgerMutationRequest: Equatable, Sendable {
     var protocolVersion: Int = 1
     var operationID: UUID
     var entityKind: LedgerEntityKind
@@ -558,7 +558,7 @@ struct LedgerMutationRequest: Equatable, Sendable {
     var record: LedgerRecord?
 }
 
-extension LedgerMutationRequest: Codable {
+nonisolated extension LedgerMutationRequest: Codable {
     private enum CodingKeys: String, CodingKey {
         case protocolVersion = "protocol_version"
         case operationID = "operation_id"
@@ -615,7 +615,7 @@ extension LedgerMutationRequest: Codable {
 // MARK: — Snapshots
 
 /// Fields every snapshot carries, whatever the entity is.
-struct LedgerSnapshotHeader: Equatable, Sendable {
+nonisolated struct LedgerSnapshotHeader: Equatable, Sendable {
     var entityKind: LedgerEntityKind
     var localID: UUID
     var userID: String
@@ -627,7 +627,7 @@ struct LedgerSnapshotHeader: Equatable, Sendable {
     var isDeleted: Bool { deletedAt != nil }
 }
 
-struct TransactionSnapshotV1: Equatable, Sendable {
+nonisolated struct TransactionSnapshotV1: Equatable, Sendable {
     var header: LedgerSnapshotHeader
     var record: TransactionRecordV1
     var createdAt: Date
@@ -635,13 +635,13 @@ struct TransactionSnapshotV1: Equatable, Sendable {
     var legacyWalletName: String?
 }
 
-struct WalletSnapshotV1: Equatable, Sendable {
+nonisolated struct WalletSnapshotV1: Equatable, Sendable {
     var header: LedgerSnapshotHeader
     var record: WalletRecordV1
     var createdAt: Date
 }
 
-struct CategorySnapshotV1: Equatable, Sendable {
+nonisolated struct CategorySnapshotV1: Equatable, Sendable {
     var header: LedgerSnapshotHeader
     var record: CategoryRecordV1
     /// Optional on purpose: the DTO inventory lists `created_at` for
@@ -652,7 +652,7 @@ struct CategorySnapshotV1: Equatable, Sendable {
 
 /// A snapshot of whichever entity the change concerns. Decoding is driven by
 /// `entity_kind`; an unrecognised tag is an error, never a defaulted expense.
-enum LedgerSnapshot: Equatable, Sendable {
+nonisolated enum LedgerSnapshot: Equatable, Sendable {
     case transaction(TransactionSnapshotV1)
     case wallet(WalletSnapshotV1)
     case category(CategorySnapshotV1)
@@ -666,7 +666,7 @@ enum LedgerSnapshot: Equatable, Sendable {
     }
 }
 
-extension LedgerSnapshot: Codable {
+nonisolated extension LedgerSnapshot: Codable {
     private enum HeaderKeys: String, CodingKey {
         case entityKind = "entity_kind"
         case localID = "local_id"
@@ -739,7 +739,7 @@ extension LedgerSnapshot: Codable {
 /// What the server said about one mutation. A conflict arrives as an ordinary
 /// HTTP success with `status: "conflict"`, so it is a domain outcome the client
 /// must handle, not a transport error to retry blindly.
-enum LedgerMutationResult: Equatable, Sendable {
+nonisolated enum LedgerMutationResult: Equatable, Sendable {
     case accepted(Accepted)
     case conflict(Conflict)
 
@@ -768,7 +768,7 @@ enum LedgerMutationResult: Equatable, Sendable {
     }
 }
 
-extension LedgerMutationResult: Decodable {
+nonisolated extension LedgerMutationResult: Decodable {
     private enum CodingKeys: String, CodingKey {
         case status
         case operationID = "operation_id"
@@ -807,7 +807,7 @@ extension LedgerMutationResult: Decodable {
 
 // MARK: — Change feed
 
-struct LedgerChange: Decodable, Equatable, Sendable {
+nonisolated struct LedgerChange: Decodable, Equatable, Sendable {
     var cursor: LedgerCursor
     var operationID: UUID?
     var entityKind: LedgerEntityKind
@@ -838,7 +838,7 @@ struct LedgerChange: Decodable, Equatable, Sendable {
 
 /// One bounded page of the owner's change feed. `throughCursor` is fixed for
 /// the whole run so a pull cannot chase a moving target.
-struct LedgerChangePage: Decodable, Equatable, Sendable {
+nonisolated struct LedgerChangePage: Decodable, Equatable, Sendable {
     var throughCursor: LedgerCursor
     var nextCursor: LedgerCursor
     var hasMore: Bool

@@ -8,7 +8,7 @@ import Foundation
 /// Double fallback below remains only for a `ParsedTransaction` built without
 /// one; it reads the Double through its shortest decimal description — the
 /// value it actually denotes — rather than multiplying it out and hoping.
-enum ParsedTransactionDraft {
+nonisolated enum ParsedTransactionDraft {
 
     enum BuildError: Error, Equatable {
         /// The amount could not be read exactly. Carries a machine code.

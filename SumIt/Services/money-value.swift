@@ -4,7 +4,7 @@ import Foundation
 
 /// Typed failures for every monetary boundary. No monetary path returns an
 /// optional or falls back to a previous value: a bad amount is an error.
-enum MoneyError: Error, Equatable {
+nonisolated enum MoneyError: Error, Equatable {
     /// The text is not a well-formed amount for the requested grammar.
     case invalidSyntax
     /// A Decimal is NaN, or an operation produced a non-finite value.
@@ -26,7 +26,7 @@ enum MoneyError: Error, Equatable {
 /// decisions, not a claim about bank or exchange execution precision.
 /// Legacy values recorded outside these limits are preserved unchanged; the
 /// limits apply to newly entered amounts only.
-enum MoneyPrecision {
+nonisolated enum MoneyPrecision {
     /// Fractional digits accepted for a new entry in this currency.
     static let entryScale: [String: Int] = [
         "USD": 2, "EUR": 2, "UAH": 2, "GBP": 2, "PLN": 2, "CZK": 2,
@@ -57,7 +57,7 @@ enum MoneyPrecision {
 /// Canonical string form of a monetary quantity: dot separator, no grouping,
 /// no exponent, no leading plus, no unnecessary trailing fractional zeros,
 /// zero written as `0`. This is the only form persisted or put on the wire.
-enum MoneyCodec {
+nonisolated enum MoneyCodec {
 
     /// Largest absolute amount accepted for a new entry.
     static let maxEntryAmount = Decimal(string: "1000000000000")!      // 1e12

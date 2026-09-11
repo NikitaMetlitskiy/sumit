@@ -26,8 +26,7 @@ final class LedgerPushTests: XCTestCase {
         nonisolated(unsafe) var handler: (@Sendable (LedgerMutationRequest, Int) throws -> LedgerMutationResult)?
 
         var requests: [LedgerMutationRequest] {
-            lock.lock(); defer { lock.unlock() }
-            return recorded
+            lock.withLock { recorded }
         }
 
         func readLedgerChanges(after: Int64, through: Int64?, limit: Int,
@@ -37,11 +36,10 @@ final class LedgerPushTests: XCTestCase {
 
         func applyLedgerMutation(_ request: LedgerMutationRequest,
                                  scope: AccountScope) async throws -> LedgerMutationResult {
-            lock.lock()
-            recorded.append(request)
-            let attempt = recorded.count
-            let handler = self.handler
-            lock.unlock()
+            let (attempt, handler) = lock.withLock {
+                recorded.append(request)
+                return (recorded.count, self.handler)
+            }
             guard let handler else { throw LedgerTransportError.unreachable }
             return try handler(request, attempt)
         }
@@ -201,10 +199,10 @@ final class LedgerPushTests: XCTestCase {
         try context.save()
 
         // Fail every save from the moment the coordinator tries to record the ack.
-        var frozen = false
-        rebuildWithFailingPersistAfterFreeze(shouldFail: { frozen })
+        let frozen = TestFlag()
+        rebuildWithFailingPersistAfterFreeze(shouldFail: { frozen.isRaised })
         transport.handler = { request, _ in
-            frozen = true
+            frozen.raise()
             return try acceptedResult(request, revision: 1, owner: LedgerIDs.ownerA)
         }
 
@@ -272,10 +270,9 @@ final class LedgerPushTests: XCTestCase {
         try queueExpense(amount: "11")
         try queueExpense(amount: "12")
 
-        var revision: Int64 = 0
+        let revision = TestCounter()
         transport.handler = { request, _ in
-            revision += 1
-            return try acceptedResult(request, revision: revision, owner: LedgerIDs.ownerA)
+            try acceptedResult(request, revision: revision.next(), owner: LedgerIDs.ownerA)
         }
         await run()
 
@@ -300,10 +297,9 @@ final class LedgerPushTests: XCTestCase {
     func testOverlappingTriggersRunOneDispatcher() async throws {
         try queueWallet()
         try queueExpense()
-        var revision: Int64 = 0
+        let revision = TestCounter()
         transport.handler = { request, _ in
-            revision += 1
-            return try acceptedResult(request, revision: revision, owner: LedgerIDs.ownerA)
+            try acceptedResult(request, revision: revision.next(), owner: LedgerIDs.ownerA)
         }
 
         coordinator.trigger(scope: scope)
@@ -450,7 +446,7 @@ final class LedgerPushTests: XCTestCase {
 
 // These build server answers for the fake transport. They are free functions so
 // the nonisolated handler closure can call them without hopping actors.
-private func acceptedResult(_ request: LedgerMutationRequest, revision: Int64,
+nonisolated private func acceptedResult(_ request: LedgerMutationRequest, revision: Int64,
                             owner: String) throws -> LedgerMutationResult {
     let entity = request.entityID.uuidString.lowercased()
     let body: String
@@ -480,7 +476,7 @@ private func acceptedResult(_ request: LedgerMutationRequest, revision: Int64,
     return try JSONDecoder().decode(LedgerMutationResult.self, from: Data(json.utf8))
 }
 
-private func conflictResult(_ request: LedgerMutationRequest) throws -> LedgerMutationResult {
+nonisolated private func conflictResult(_ request: LedgerMutationRequest) throws -> LedgerMutationResult {
     let json = """
     {"status":"conflict","operation_id":"\(request.operationID.uuidString.lowercased())",
      "entity_id":"\(request.entityID.uuidString.lowercased())",

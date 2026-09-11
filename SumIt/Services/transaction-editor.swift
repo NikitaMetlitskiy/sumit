@@ -7,7 +7,7 @@ import Foundation
 /// rejected save left the record half-changed and a cancelled edit had already
 /// happened. Here nothing reaches the store until a complete, valid draft is
 /// produced.
-struct TransactionEditorFields: Equatable {
+nonisolated struct TransactionEditorFields: Equatable {
     var type: TransactionType
     /// Exactly what the user typed. Never re-rendered from a Double.
     var amountText: String
@@ -26,7 +26,7 @@ struct TransactionEditorFields: Equatable {
 }
 
 /// The user's decision about USD valuation.
-enum ValuationChoice: Equatable {
+nonisolated enum ValuationChoice: Equatable {
     /// No explicit decision. Keeps an existing record's valuation when nothing
     /// that affects it changed, reuses its confirmed quote when only the amount
     /// changed, values USD at identity, and leaves a new non-USD record
@@ -45,7 +45,7 @@ enum ValuationChoice: Equatable {
 
 /// Which field is wrong, and why. The view puts the message under that field
 /// rather than showing one message for the whole form.
-enum TransactionEditorProblem: Error, Equatable {
+nonisolated enum TransactionEditorProblem: Error, Equatable {
     case amount(String)
     case walletAmount(String)
     case destinationAmount(String)
@@ -60,12 +60,12 @@ enum TransactionEditorProblem: Error, Equatable {
 }
 
 /// Either the exact value, or the machine code saying why it could not be read.
-enum DecodedAmount {
+nonisolated enum DecodedAmount {
     case success(Decimal)
     case failure(String)
 }
 
-enum TransactionEditor {
+nonisolated enum TransactionEditor {
 
     // MARK: — Opening
 

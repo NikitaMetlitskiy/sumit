@@ -394,7 +394,7 @@ enum LedgerTransportError: Error, Equatable {
 
 /// The authentication facts the transport needs, injectable so a unit test can
 /// drive refresh behaviour without touching the real session.
-struct LedgerAuth: Sendable {
+nonisolated struct LedgerAuth: Sendable {
     var token: @Sendable () async -> String?
     var currentOwnerID: @Sendable () async -> String
     /// Returns true when a refresh produced a usable session.

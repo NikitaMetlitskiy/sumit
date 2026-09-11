@@ -21,7 +21,7 @@ final class LedgerConflictTests: XCTestCase {
         private var pages: [String: LedgerChangePage] = [:]
 
         func setPage(after: Int64, _ page: LedgerChangePage) {
-            lock.lock(); pages["\(after)"] = page; lock.unlock()
+            lock.withLock { pages["\(after)"] = page }
         }
 
         func applyLedgerMutation(_ request: LedgerMutationRequest,
@@ -31,7 +31,7 @@ final class LedgerConflictTests: XCTestCase {
 
         func readLedgerChanges(after: Int64, through: Int64?, limit: Int,
                                scope: AccountScope) async throws -> LedgerChangePage {
-            lock.lock(); let page = pages["\(after)"]; lock.unlock()
+            let page = lock.withLock { pages["\(after)"] }
             guard let page else { throw LedgerTransportError.unknownOutcome }
             return page
         }

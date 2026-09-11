@@ -4,7 +4,7 @@ import XCTest
 /// ERR group from acceptance-tests.md §5, for the transport layer.
 /// Every case runs against `StubURLProtocol` on an **ephemeral** session, so no
 /// test can reach the network or a real credential.
-final class SupabaseTransportTests: XCTestCase {
+nonisolated final class SupabaseTransportTests: XCTestCase {
 
     private let scope = AccountScope(ownerID: "10000000-0000-4000-8000-00000000000a", epoch: UUID())
 
@@ -25,11 +25,11 @@ final class SupabaseTransportTests: XCTestCase {
         return SupabaseService(session: StubURLProtocol.makeSession(), auth: auth)
     }
 
-    private final class RefreshCounter: @unchecked Sendable {
+    nonisolated private final class RefreshCounter: @unchecked Sendable {
         private let lock = NSLock()
         private var value = 0
-        func record() { lock.lock(); value += 1; lock.unlock() }
-        var count: Int { lock.lock(); defer { lock.unlock() }; return value }
+        func record() { lock.withLock { value += 1 } }
+        var count: Int { lock.withLock { value } }
     }
 
     private func request(operationID: UUID = LedgerIDs.transfer,
@@ -326,7 +326,7 @@ final class SupabaseTransportTests: XCTestCase {
 }
 
 /// Counts stub invocations across the actor boundary.
-private final class AttemptCounter: @unchecked Sendable {
+nonisolated private final class AttemptCounter: @unchecked Sendable {
     private let lock = NSLock()
     private var value = 0
     @discardableResult func record() -> Int {

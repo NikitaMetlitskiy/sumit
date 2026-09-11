@@ -2,7 +2,7 @@ import Foundation
 
 /// Why a wallet effect was rejected. Every case is a condition the old
 /// name-and-delta code could not even express.
-enum WalletLedgerError: Error, Equatable {
+nonisolated enum WalletLedgerError: Error, Equatable {
     /// The draft references a wallet that does not exist in the given set.
     case unknownWallet(UUID)
     /// The wallet belongs to a different account.
@@ -44,7 +44,7 @@ enum WalletLedgerError: Error, Equatable {
 ///                − Σ expense.walletAmount     where walletID == W
 ///                − Σ transfer.walletAmount    where walletID == W
 ///                + Σ transfer.destinationAmount where destinationWalletID == W
-enum WalletLedger {
+nonisolated enum WalletLedger {
 
     // MARK: — Effects
 

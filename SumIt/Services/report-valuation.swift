@@ -3,7 +3,7 @@ import Foundation
 // MARK: — One record, as a report sees it
 
 /// How a record contributes to USD totals.
-enum ReportValuationState: Equatable, Sendable {
+nonisolated enum ReportValuationState: Equatable, Sendable {
     /// Booked with a dated quote (provider, identity or manual). Counted.
     case valued
     /// Converted with the app's old built-in table before the ledger existed.
@@ -13,7 +13,7 @@ enum ReportValuationState: Equatable, Sendable {
     case unconverted
 }
 
-struct ReportEntry: Equatable, Sendable {
+nonisolated struct ReportEntry: Equatable, Sendable {
     let id: UUID
     let type: TransactionType
     let occurredAt: Date
@@ -61,12 +61,12 @@ extension Transaction {
 
 // MARK: — The summary
 
-struct CategoryTotal: Equatable, Sendable {
+nonisolated struct CategoryTotal: Equatable, Sendable {
     let name: String
     let usd: Decimal
 }
 
-struct DayTotal: Equatable, Sendable {
+nonisolated struct DayTotal: Equatable, Sendable {
     let day: Date
     let usd: Decimal
 }
@@ -78,7 +78,7 @@ struct DayTotal: Equatable, Sendable {
 /// missing. Here a record without a USD value stays out of the USD total and is
 /// counted, so a partial total is never presented as a complete one. A transfer
 /// is neither income nor expense and is counted once.
-struct ReportSummary: Equatable, Sendable {
+nonisolated struct ReportSummary: Equatable, Sendable {
     var expenseUSD: Decimal = 0
     var incomeUSD: Decimal = 0
     var netUSD: Decimal { incomeUSD - expenseUSD }
@@ -158,7 +158,7 @@ struct ReportSummary: Equatable, Sendable {
 /// The booked value stays in USD. This uses a separately obtained *current*
 /// quote and is labelled as such, so switching display currency never changes a
 /// historical income or expense figure, and market movement never rewrites one.
-struct DisplayConversion: Equatable, Sendable {
+nonisolated struct DisplayConversion: Equatable, Sendable {
     let currency: String
     /// USD per one unit of `currency`, or `nil` when no quote is available.
     let quote: RateQuote?

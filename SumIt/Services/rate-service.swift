@@ -4,7 +4,7 @@ import SwiftData
 
 // MARK: — Wire
 
-struct RateUnavailable: Decodable, Equatable, Sendable {
+nonisolated struct RateUnavailable: Decodable, Equatable, Sendable {
     let currency: String
     /// One of the server's documented reasons — or a newer one this build does
     /// not know. An unknown reason is still an unavailable state, never success.
@@ -12,7 +12,7 @@ struct RateUnavailable: Decodable, Equatable, Sendable {
     let retryable: Bool
 }
 
-struct RatesResponse: Decodable, Sendable {
+nonisolated struct RatesResponse: Decodable, Sendable {
     let quotes: [RateQuote]
     let unavailable: [RateUnavailable]
 }
@@ -21,7 +21,7 @@ struct RatesResponse: Decodable, Sendable {
 
 /// The client's copy of the automatic-use windows, for quotes read back from
 /// the local cache while offline. The server applies the same numbers.
-enum RatePolicy {
+nonisolated enum RatePolicy {
     static let cryptoCurrencies: Set<String> = ["BTC", "ETH", "USDC", "USDT"]
     static let fiatAutomaticUse: TimeInterval = 96 * 3600
     static let cryptoAutomaticUse: TimeInterval = 15 * 60
@@ -52,7 +52,7 @@ enum RatePolicy {
 
 // MARK: — Availability
 
-enum QuoteAvailability: Equatable, Sendable {
+nonisolated enum QuoteAvailability: Equatable, Sendable {
     /// USD: exactly 1, no request.
     case identity(RateQuote)
     /// A provider quote usable without asking.
@@ -189,7 +189,7 @@ extension CachedRateQuote {
 
 // MARK: — Manual rate
 
-enum ManualRate {
+nonisolated enum ManualRate {
 
     /// A rate the user typed, as a `manual` quote — or the reason it cannot be.
     ///
