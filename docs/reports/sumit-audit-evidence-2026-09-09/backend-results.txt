@@ -1,0 +1,9 @@
+REPRODUCED: Basic user can forward Pro model; wallet context exceeds 500 characters.
+(node:93603) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+REPRODUCED: Expired subscription is accepted when stored tier is Basic.
+REPRODUCED: Two concurrent requests pass with one quota slot remaining (no reservation).
+REPRODUCED: Invalid transaction JSON passes server parsing; current date/timezone is not supplied.
+App Store notification received (stub).
+REPRODUCED: Notification stub acknowledges an unsigned arbitrary payload.
+REPRODUCED: Health returns HTTP 200 and ok=true with required configuration missing.

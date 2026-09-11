@@ -1,0 +1,16 @@
+[
+  {
+    "name": "fiat-latest",
+    "url": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=EUR,UAH,GBP,PLN,CZK,CAD,CHF,RUB,KZT,JPY&expand=providers",
+    "status": 403,
+    "elapsed_seconds": 0.101,
+    "body": "error code: 1010\n"
+  },
+  {
+    "name": "fiat-historical",
+    "url": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=EUR,UAH,GBP,PLN,CZK,CAD,CHF,RUB,KZT,JPY&date=2026-05-19&expand=providers",
+    "status": 403,
+    "elapsed_seconds": 0.059,
+    "body": "error code: 1010\n"
+  }
+]
