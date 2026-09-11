@@ -75,6 +75,41 @@ nonisolated final class SupabaseTransportTests: XCTestCase {
         }
     }
 
+    // MARK: — RPC argument envelope
+
+    /// The defect this pins: PostgREST treats the body's top-level keys as the
+    /// function's argument names. Sending the mutation itself made production
+    /// answer 404 for every push — reads worked because they were named.
+    func testTheWriteRPCNamesItsArgument() async throws {
+        StubURLProtocol.handler = { _ in .init(statusCode: 200, body: self.acceptedBody()) }
+
+        _ = try await makeService().applyLedgerMutation(request(), scope: scope)
+
+        let body = try XCTUnwrap(StubURLProtocol.bodies().first)
+        let object = try XCTUnwrap(try JSONSerialization.jsonObject(with: body) as? [String: Any])
+        XCTAssertEqual(Set(object.keys), ["p_request"],
+                       "apply_ledger_mutation_v1 takes exactly one argument, p_request")
+        let argument = try XCTUnwrap(object["p_request"] as? [String: Any])
+        XCTAssertNotNil(argument["operation_id"], "the mutation travels inside the argument")
+        XCTAssertNotNil(argument["protocol_version"])
+    }
+
+    func testTheReadRPCNamesItsArguments() async {
+        StubURLProtocol.handler = { _ in .init(statusCode: 200, body: Data("{}".utf8)) }
+
+        // The body is what matters here; the empty answer fails to decode.
+        _ = try? await makeService().readLedgerChanges(after: 7, through: nil, limit: 50, scope: scope)
+
+        guard let body = StubURLProtocol.bodies().first,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else {
+            return XCTFail("no request body was captured")
+        }
+        XCTAssertEqual(Set(object.keys), ["p_after_cursor", "p_through_cursor", "p_limit"])
+        XCTAssertEqual(object["p_after_cursor"] as? Int, 7)
+        XCTAssertEqual(object["p_limit"] as? Int, 50)
+        XCTAssertTrue(object["p_through_cursor"] is NSNull, "an absent watermark is explicit null")
+    }
+
     // MARK: — Success
 
     func testAcceptedMutationIsReturned() async throws {

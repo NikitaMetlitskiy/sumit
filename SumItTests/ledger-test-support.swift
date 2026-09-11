@@ -352,17 +352,44 @@ nonisolated final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) static var handler: (@Sendable (URLRequest) -> Response)?
     /// Every request the session made, for asserting what was sent.
     nonisolated(unsafe) private(set) static var recorded: [URLRequest] = []
+    /// The bytes each request carried, captured separately: see `body(of:)`.
+    nonisolated(unsafe) private(set) static var recordedBodies: [Data] = []
     private static let lock = NSLock()
 
     static func reset() {
         lock.lock(); defer { lock.unlock() }
         handler = nil
         recorded = []
+        recordedBodies = []
     }
 
     static func requests() -> [URLRequest] {
         lock.lock(); defer { lock.unlock() }
         return recorded
+    }
+
+    /// What each request actually sent. `URLProtocol` hands the body over as a
+    /// stream, so `URLRequest.httpBody` is nil in here — a test asserting on
+    /// that field would quietly assert nothing at all.
+    static func bodies() -> [Data] {
+        lock.lock(); defer { lock.unlock() }
+        return recordedBodies
+    }
+
+    private static func body(of request: URLRequest) -> Data {
+        if let body = request.httpBody { return body }
+        guard let stream = request.httpBodyStream else { return Data() }
+        stream.open()
+        defer { stream.close() }
+        var data = Data()
+        let size = 4096
+        var buffer = [UInt8](repeating: 0, count: size)
+        while stream.hasBytesAvailable {
+            let read = stream.read(&buffer, maxLength: size)
+            if read <= 0 { break }
+            data.append(buffer, count: read)
+        }
+        return data
     }
 
     /// An ephemeral session that can only ever talk to this stub.
@@ -376,8 +403,10 @@ nonisolated final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
+        let body = Self.body(of: request)
         Self.lock.lock()
         Self.recorded.append(request)
+        Self.recordedBodies.append(body)
         let handler = Self.handler
         Self.lock.unlock()
 

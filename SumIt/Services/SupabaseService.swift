@@ -411,9 +411,17 @@ extension SupabaseService {
     /// Submits one frozen mutation and returns what the server actually said.
     func applyLedgerMutation(_ request: LedgerMutationRequest,
                              scope: AccountScope) async throws -> LedgerMutationResult {
+        // PostgREST reads the top-level keys of the body as the function's
+        // argument names. Posting the mutation itself asked for a function
+        // called with `protocol_version`, `operation_id`, … — which does not
+        // exist, so production answered 404 and no write ever landed. The
+        // function takes one argument: apply_ledger_mutation_v1(p_request jsonb).
         let payload: Data
-        do { payload = try JSONEncoder().encode(request) }
-        catch { throw LedgerTransportError.configuration }
+        do {
+            let encoded = try JSONEncoder().encode(request)
+            let argument = try JSONSerialization.jsonObject(with: encoded)
+            payload = try JSONSerialization.data(withJSONObject: ["p_request": argument])
+        } catch { throw LedgerTransportError.configuration }
 
         let data = try await callRPC("apply_ledger_mutation_v1", body: payload, scope: scope)
 
